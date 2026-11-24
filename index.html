@@ -909,6 +909,17 @@ addEventListener('keydown',blockKey,{capture:true});addEventListener('keyup',blo
 const unfocus=()=>{const a=document.activeElement;if(a&&a!==document.body&&a.blur)a.blur();};
 for(const ev of['contextmenu','selectstart','dragstart','gesturestart','gesturechange'])addEventListener(ev,e=>{if(!(e.target&&e.target.tagName==='INPUT'))e.preventDefault();},{passive:false});
 addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+/* Kamera-Kollision: Strahl vom Kopf zur Wunschposition abtasten, an Gebäuden, Mauern und Hügeln verkürzen */
+let camCol=10.5,camHit=false,camDtPrev=0;
+function camBlocked(x,y,z){const gy=H(x,z);if(isFinite(gy)&&y<gy+.4)return true;
+  const near=PG.get(Math.floor(x/PGC)*4096+Math.floor(z/PGC));
+  if(near)for(const o of near){if(o.r<1.3)continue;const dx=x-o.x,dz=z-o.z,rr=o.r+.35;if(dx*dx+dz*dz>rr*rr)continue;
+    if(o.gy===undefined){const g=H(o.x,o.z);o.gy=isFinite(g)?g:0;}if(y<o.gy+(o.h||Math.max(4.5,o.r*1.9)))return true;}
+  for(const k of blockers)if(x>k.x0-.3&&x<k.x1+.3&&z>k.z0-.3&&z<k.z1+.3&&y<(isFinite(gy)?gy:0)+14)return true;return false;}
+function camClip(by){pgEnsure();const want=camDist,sx=Math.sin(camYaw)*Math.cos(camPitch),sy=Math.sin(camPitch),sz=Math.cos(camYaw)*Math.cos(camPitch);
+  const N=Math.ceil(want/.5);let free=want;for(let i=2;i<=N;i++){const t=want*i/N;if(camBlocked(player.pos.x+sx*t,by+sy*t,player.pos.z+sz*t)){free=Math.max(1.4,want*(i-1)/N-.25);break;}}
+  const dt=Math.min(.05,time-camDtPrev);camDtPrev=time;
+  if(free<camCol){camCol=free;camHit=true;}else{camCol=Math.min(free,camCol+(free-camCol)*Math.min(1,dt*4));camHit=camCol<want-.3;}return camCol;}
 let camDist=10.5;addEventListener('wheel',e=>{e.preventDefault();if(e.ctrlKey)return;camDist=Math.min(22,Math.max(5,camDist+Math.sign(e.deltaY)*1.2));},{passive:false});
 addEventListener('touchmove',e=>{if(e.touches.length>1||e.target===$('c'))e.preventDefault();},{passive:false});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;stick.x=stick.y=0;drag=null;});
@@ -1063,9 +1074,9 @@ function update(dt){time+=dt;if(skyU)skyU.t.value=time;
   for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.t+=dt;const s=1+f.t*10;f.s.scale.set(s,s,1);if(f.t>.35){world.remove(f.s);fx.splice(i,1);}}
   hero.position.copy(player.pos);if(riding)hero.position.y+=.6+Math.sin(time*3)*.12;hero.rotation.y=player.rot;hero.visible=!(player.inv>0&&Math.floor(time*20)%2);
   if(state==='title')camYaw+=dt*.1;
-  const dist=camDist,by=Math.max(player.pos.y,-4)+2;let cx=player.pos.x+Math.sin(camYaw)*dist*Math.cos(camPitch),cz=player.pos.z+Math.cos(camYaw)*dist*Math.cos(camPitch),cy=by+Math.sin(camPitch)*dist;
+  const by=Math.max(player.pos.y,-4)+2,dist=state==='title'?camDist:camClip(by);let cx=player.pos.x+Math.sin(camYaw)*dist*Math.cos(camPitch),cz=player.pos.z+Math.cos(camYaw)*dist*Math.cos(camPitch),cy=by+Math.sin(camPitch)*dist;
   const g=H(cx,cz);if(isFinite(g))cy=Math.max(cy,g+1.2);if(player.pos.z>1205&&Math.abs(player.pos.x)<262)cz=Math.min(cz,1434);
-  _v.set(cx,cy,cz);camera.position.lerp(_v,Math.min(1,dt*8));camera.lookAt(player.pos.x,by,player.pos.z);if(WORLD.skyM)WORLD.skyM.position.copy(camera.position);mpTick(dt);rpgTick(dt);mapTick(dt);}
+  _v.set(cx,cy,cz);camera.position.lerp(_v,camHit?1:Math.min(1,dt*8));camera.lookAt(player.pos.x,by,player.pos.z);if(WORLD.skyM)WORLD.skyM.position.copy(camera.position);mpTick(dt);rpgTick(dt);mapTick(dt);}
 function loop(){const dt=Math.min(.05,clock.getDelta());update(dt);renderer.render(scene,camera);requestAnimationFrame(loop);}
 
 /* ---------- Start ---------- */
@@ -1472,7 +1483,7 @@ if(touchMode){let ek=0;$('bEmote').addEventListener('contextmenu',e=>{e.preventD
 
 /* ================= SPIEL-LOG / UPDATES ================= */
 const CHANGELOG=[
- {v:'1.4',t:'Wähle deinen Weg',d:'24.11.2026',items:['Neues Spiel startet jetzt mit einer Klassenwahl: Sternenmagier, Feuerhexer, Sonnenritter, Mooshüter oder Glücksstrolch.','Jede Klasse hat eigene Herzen, Stärken und Schwächen. Manche können ihren Spezialzauber schon ab Stufe 1.','Fennick sieht je nach Klasse anders aus: andere Robenfarbe, eigener Zauberblitz, Schild, Blätterkranz, Umhang oder Flammenhut.','Alte Spielstände spielen als Sternenmagier weiter.','Klasse wechseln mit Taste O (oder im Talentfenster): Auf Stufe 10, 20, 30 … ist ein Wechsel kostenlos, sonst kostet er Gold. Stufe, Talente, Ausrüstung und Quests bleiben erhalten.','Mehrspieler: Andere sehen deine Klasse an Robe, Zubehör, Zauberfarbe und am Symbol über deinem Namen. Auch die Spielerliste zeigt die Klasse.']},
+ {v:'1.4',t:'Wähle deinen Weg',d:'24.11.2026',items:['Die Kamera geht nicht mehr durch Häuser, Mauern, Türme und Hügel. Sie rückt automatisch näher an Fennick heran.','Neues Spiel startet jetzt mit einer Klassenwahl: Sternenmagier, Feuerhexer, Sonnenritter, Mooshüter oder Glücksstrolch.','Jede Klasse hat eigene Herzen, Stärken und Schwächen. Manche können ihren Spezialzauber schon ab Stufe 1.','Fennick sieht je nach Klasse anders aus: andere Robenfarbe, eigener Zauberblitz, Schild, Blätterkranz, Umhang oder Flammenhut.','Alte Spielstände spielen als Sternenmagier weiter.','Klasse wechseln mit Taste O (oder im Talentfenster): Auf Stufe 10, 20, 30 … ist ein Wechsel kostenlos, sonst kostet er Gold. Stufe, Talente, Ausrüstung und Quests bleiben erhalten.','Mehrspieler: Andere sehen deine Klasse an Robe, Zubehör, Zauberfarbe und am Symbol über deinem Namen. Auch die Spielerliste zeigt die Klasse.']},
  {v:'1.3',t:'Höfe, Häfen und Halunken',d:'24.11.2026',items:['Sieben neue Quests: Schafe zählen, Goldene Kürbisse, Steckbriefe, Signalfeuer, Das dunkle Leuchtfeuer, Die Glitzermine und Wespenplage.','Vier gesuchte Schurken mit Namen, Lebensbalken und Beute: Räuberhauptmann Grimmbart, Glutkönig Funkenzahn, Sumpfhexer Quaxl und Brummfrost der Eisyeti.','Neue Orte: das Fischerdorf Krötenhafen mit Stegen und Booten, der Glimmerturm (ein Leuchtturm), die Glitzermine, eine Karawanserei, der Gasthof „Zur Krummen Gabel“ und die Uralte Eiche, unter der man rasten kann.','Sieben neue Höfe: Apfelhof mit Obstgarten, Kürbishof, Schäferei mit Weide, Weinberg, Imkerei mit Bienenstöcken, Kuhhof und Knollenhof.','Tiere: Schafe, Kühe und Hühner laufen auf Weiden und durch die Dörfer.','Fünf neue Sonnenschreine für die Schnellreise und 13 neue Orte auf der Weltkarte.']},
  {v:'1.2',t:'Das große Land',d:'24.11.2026',items:['Die ganze Welt ist fünfmal so groß: Alle Regionen, Wege und Orte sind mitgewachsen, mit Hügeln, Bergen, weiten Wäldern und einem breiten Fluss.','Schiefstadt ist jetzt eine echte Großstadt: über tausend schiefe Häuser, Straßenraster, Ringstraße, Stadtmauer mit 16 Türmen und vier Torburgen, Spaziergänger in den Gassen.','Neue Stadtviertel: Kathedrale mit Friedhof, Sternenakademie mit Turm, Arena der Träume, Stadtpark mit Teich und Pavillon, Kornmarkt, dazu Rathaus, Gasthaus und Schmiede am Marktplatz.','Neue Region hinter der Leuchtschlucht im Nordwesten: Die Frostzacken, verschneite Berge mit Frostkobolden, einem Eremiten und Schneefall.','Neue Quests: Post für Schiefstadt (Postbote Pips), Sternsplitter (Astronomin Vega) und die Arena der Träume mit Wellenkämpfen in immer schwereren Runden (Arenameister Brakus).','Reisebesen: bei Besenmacherin Ruthilde am Kornmarkt kaufen, mit B aufsitzen und gut zweieinhalbmal so schnell reisen.','Drei neue Weiler (Krummbach, Wackelfurt, Hinkelhain), mehr Höfe, Ruinen, Lager, Wachtürme, Seen, 80 Truhen und 15 Sonnenschreine für die Schnellreise.','Weltkarte mit stärkerem Zoom: Nah herangezoomt siehst du jedes Haus und jede Gasse der Stadt.','Die Welt wird für alle gleich erzeugt: Mitspieler sehen dieselbe Stadt.','Alte Spielstände laufen weiter, deine Position wird auf die neue Weltgröße umgerechnet.']},
  {v:'1.1',t:'Die Stadt Schiefstadt',d:'22.11.2026',items:['Schiefstadt ist jetzt eine richtige Stadt mit Stadtmauer, Zinnen, acht Rundtürmen und vier Toren mit Wachen.','Straßenraster mit zwei Hauptstraßen und vier Seitenstraßen, gesäumt von dicht gebauten, schiefen Fachwerkhäusern.','Marktplatz mit acht Ständen, Bänken und dem Sonnenbrunnen.','Neue Gebäude: Rathaus mit Uhrturm, Kirche mit Rosettenfenster, Gasthaus „Zum Schiefen Krug“, Schmiede mit glühender Esse.','Hinterhöfe mit Bäumen, Gemüsebeeten und Brunnen, Fässer und Kisten vor den Häusern, bunte Wimpelketten über den Straßen.','Neue Figuren: Bürgermeister Quirin, Priesterin Lumina, Schmiedin Brunhild, Stadtwachen an jedem Tor. Bodo steht jetzt vor dem Gasthaus, Gerd am Nordtor.']},
@@ -1727,7 +1738,7 @@ function cityHouse(x,z,ry,o){const gy=H(x,z),gm=bgroup(x,gy-.3,z,0,ry,R(-.07,.07
     for(const sx of[-1,1])bpart('hwin',G.plane,win,gm,sx*w*.27,h+1.4,oz+d*k/2+.03,.9,1.1,1);h+=2.8;}
   const rh=R(3.5,6.5),rs=Math.max(w,d)*.8;bpart('hr'+rk,G.cone4,roof,gm,0,h+rh/2,0,rs,rh,rs,0,PI/4,R(-.1,.1));
   bpart('hch',G.box,M('chim',()=>lam({map:T.stone(1,2)})),gm,w*.28,h+rh*.55,d*.1,.9,rh*.8,.9);
-  props.push({x,z,r:o.pr||(w+d)/4});MAPH.push([x,z,(w+d)/4]);
+  props.push({x,z,r:o.pr||(w+d)/4,h:h+rh*.55});MAPH.push([x,z,(w+d)/4]);
   return{top:new THREE.Vector3(w*.28,h+rh*.95,d*.1).applyMatrix4(gm)};}
 function roofRect(par,mat,x,y,z,w,h,d){const o=new THREE.Group();o.position.set(x,y,z);o.scale.set(w*.78,h,d*.78);par.add(o);const m=P(G.cone4,mat,o,0,0,0,1,1,1);m.rotation.y=PI/4;return o;}
 function chimSmoke(p){for(let k=0;k<3;k++){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0xd8d0ff,transparent:true,depthWrite:false}));world.add(m);smoke.push({m,x:p.x,y:p.y,z:p.z,o:k/3});}}
@@ -1777,7 +1788,7 @@ function buildVillage(){
   /* Sonnenbrunnen */
   {const fw=grpAt(0,0,0,1.8);P(G.cyl,stone,fw,0,.6,0,4,1.2,4);P(G.circ,basic(0x5ff3ff),fw,0,1.25,0,3.6).rotation.x=-PI/2;P(G.cyl,stone,fw,0,2.6,0,.6,3,.6);
     P(G.sph,M('fsun',()=>lam({color:0xff8a2a,emissive:0x802000})),fw,0,4.6,0,1);const fg=glow(0x5ff3ff,8);fg.position.y=1.5;fw.add(fg);
-    for(let i=0;i<8;i++){const a=i/8*TAU;const r=P(G.cone4,M('fray',()=>lam({color:0xffc020,emissive:0x804000})),fw,Math.sin(a)*1.5,4.6,Math.cos(a)*1.5,.3,1,.3);r.rotation.set(Math.cos(a)*PI/2,0,-Math.sin(a)*PI/2);}props.push({x:0,z:0,r:7.6});}
+    for(let i=0;i<8;i++){const a=i/8*TAU;const r=P(G.cone4,M('fray',()=>lam({color:0xffc020,emissive:0x804000})),fw,Math.sin(a)*1.5,4.6,Math.cos(a)*1.5,.3,1,.3);r.rotation.set(Math.cos(a)*PI/2,0,-Math.sin(a)*PI/2);}props.push({x:0,z:0,r:7.6,h:6});}
   const avA=[0,PI/2,PI,-PI/2],nearAv=(a,t)=>avA.some(q=>Math.abs(Math.atan2(Math.sin(a-q),Math.cos(a-q)))<t);
   for(let i=0;i<20;i++){const a=(i+.5)/20*TAU;if(nearAv(a,.26))continue;const x=Math.sin(a)*28,z=Math.cos(a)*28;stall(x,z,face(x,z)+PI,i);}
   for(let i=0;i<16;i++){const a=(i+.5)/16*TAU;if(nearAv(a,.22))continue;const x=Math.sin(a)*36.5,z=Math.cos(a)*36.5,y=H(x,z);const b=P(G.box,wood,world,x,y+.5,z,2.4,.2,.7);b.rotation.y=a;P(G.box,wood,world,x,y+.25,z,2.2,.5,.15).rotation.y=a;props.push({x,z,r:.9});}
@@ -1839,7 +1850,7 @@ function buildVillage(){
     P(G.plane,door,g,0,1.8,11.03,2.4,3.6);P(G.box,M('sgA',()=>lam({map:signTex('Akademie')})),g,0,5.2,11.1,4,1,.1);
     for(const s of[-9,-5,5,9])for(const y of[3,7.5])P(G.plane,basic(0x9ae0ff),g,s,y,11.03,1.2,1.8);
     P(G.cyl,stone,g,15,.8,-4,3.2,1.6,3.2);const tel=P(G.cyl,M('goldk',()=>lam({map:T.gold(1),emissive:0x604000})),g,15,3.6,-4,.35,6,.35);tel.rotation.x=.8;
-    const tw=loc(g,0,-12);props.push({x:tw.x,z:tw.z,r:7.8});for(const lx of[-6,6]){const p=loc(g,lx,5);props.push({x:p.x,z:p.z,r:7.4});}{const p=loc(g,15,-4);props.push({x:p.x,z:p.z,r:3.4});}
+    const tw=loc(g,0,-12);props.push({x:tw.x,z:tw.z,r:7.8,h:30});for(const lx of[-6,6]){const p=loc(g,lx,5);props.push({x:p.x,z:p.z,r:7.4});}{const p=loc(g,15,-4);props.push({x:p.x,z:p.z,r:3.4});}
     WORLD.orbs=[];for(let i=0;i<6;i++){const s=glow([0xb070ff,0x5ff3ff,0xffe27a][i%3],3);world.add(s);WORLD.orbs.push({s,cx:tw.x,cz:tw.z,r:12+i%2*3,a:i/6*TAU,y:H(tw.x,tw.z)+18+i*3});}
     const vp=loc(g,0,15);npc('vega','Astronomin Vega',namedVillager(vp.x,vp.z,220,1.2,v=>{P(G.cone,M('vhat',()=>lam({color:0x2a3aa0})),v,0,2.2,0,.4,1.1,.4);const s=glow(0xffe27a,.9);s.position.set(0,2.8,0);v.add(s);}),()=>talkVega());
     const lp=loc(g,-9,17);WORLD.letterSpots.push([lp.x,lp.z]);}
@@ -1884,12 +1895,12 @@ function buildVillage(){
   const WR=272,gA=[0,PI/2,PI,-PI/2],nearGate=a=>gA.some(g=>Math.abs(Math.atan2(Math.sin(a-g),Math.cos(a-g)))<.045),SEG=240;
   for(let i=0;i<SEG;i++){const a=(i+.5)/SEG*TAU;if(nearGate(a))continue;const x=Math.sin(a)*WR,z=Math.cos(a)*WR,y=H(x,z),gm=bgroup(x,y,z,0,a,0);
     bpart('cwall',G.box,stone,gm,0,7,0,TAU*WR/SEG+.35,14,3.4);for(const k of[-1.8,1.8])bpart('ccren',G.box,stone,gm,k,14.7,1.1,1.4,1.4,.9);
-    bpart('cwalk',G.box,wood,gm,0,13.2,-2.2,TAU*WR/SEG+.35,.3,1.4);props.push({x,z,r:3.7});}
+    bpart('cwalk',G.box,wood,gm,0,13.2,-2.2,TAU*WR/SEG+.35,.3,1.4);props.push({x,z,r:3.7,h:15});}
   for(let k=0;k<16;k++){const a=(k+.5)/16*TAU,x=Math.sin(a)*WR,z=Math.cos(a)*WR,y=H(x,z),gm=bgroup(x,y,z,0,a,0);bpart('ctow',G.cyl,stone,gm,0,11,0,5.2,22,5.2);
-    bpart(k%2?'ctr1':'ctr2',G.cone,k%2?redR:tealR,gm,0,25.5,0,6.4,7,6.4);bpart('ctwin',G.plane,basic(0xffc040),gm,0,15,-5.25,1,1.6,1,0,PI,0);props.push({x,z,r:5.8});}
+    bpart(k%2?'ctr1':'ctr2',G.cone,k%2?redR:tealR,gm,0,25.5,0,6.4,7,6.4);bpart('ctwin',G.plane,basic(0xffc040),gm,0,15,-5.25,1,1.6,1,0,PI,0);props.push({x,z,r:5.8,h:28});}
   const gateN={0:'Südtor',[PI/2]:'Osttor',[PI]:'Nordtor',[-PI/2]:'Westtor'};
   gA.forEach(g=>{const tx=Math.cos(g),tz=-Math.sin(g),cx=Math.sin(g)*WR,cz=Math.cos(g)*WR,y=H(cx,cz);
-    for(const s of[-1,1]){const x=cx+tx*s*13,z=cz+tz*s*13;const t=P(G.box,stone,world,x,y+10,z,7,20,7);t.rotation.y=g;const rf=P(G.cone4,redR,world,x,y+23,z,5.6,6,5.6);rf.rotation.y=g+PI/4;props.push({x,z,r:4.6});
+    for(const s of[-1,1]){const x=cx+tx*s*13,z=cz+tz*s*13;const t=P(G.box,stone,world,x,y+10,z,7,20,7);t.rotation.y=g;const rf=P(G.cone4,redR,world,x,y+23,z,5.6,6,5.6);rf.rotation.y=g+PI/4;props.push({x,z,r:4.6,h:26});
       for(const o of[1,-1]){const b=P(G.plane,banM,world,x+Math.sin(g)*o*3.55,y+12,z+Math.cos(g)*o*3.55,2.2,5);b.rotation.y=g;}}
     const lin=P(G.box,stone,world,cx,y+17,cz,20,6,5);lin.rotation.y=g;const pc=P(G.box,iron,world,cx,y+13.4,cz,18,.8,.6);pc.rotation.y=g;
     const gs=P(G.box,M('gsign'+gateN[g],()=>lam({map:signTex(gateN[g])})),world,cx-Math.sin(g)*2.7,y+17,cz-Math.cos(g)*2.7,7,1.6,.15);gs.rotation.y=g;
