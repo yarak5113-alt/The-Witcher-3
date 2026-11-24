@@ -5,7 +5,7 @@ Ein 3D-Rollenspiel im PS1-Look, das komplett im Browser läuft – eine einzige 
 **Spielen:** https://yarak5113-alt.github.io/The-Witcher-3/
 
 ## Features
-- Riesige offene Welt mit der großen Stadt Schiefstadt, Höfen, Häfen, Minen und Bossen
+- Riesige offene Welt mit der gemütlichen Hügelstadt Butterbühl, Höfen, Häfen, Minen und Bossen
 - 5 Klassen: Sternenmagier, Feuerhexer, Sonnenritter, Mooshüter, Glücksstrolch
 - Quests, Talente, Beute, Reisebesen, Weltkarte
 - Online-Mehrspieler über Firebase: Alle, die das Spiel öffnen, treffen sich in derselben Welt
