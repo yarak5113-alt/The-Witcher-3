@@ -129,6 +129,7 @@ button.big:hover,button.big:focus-visible{background:#ff5a2e;outline:2px solid v
 .opt small{opacity:.8;font-size:12px}.opt.on{border-color:var(--gold);box-shadow:0 0 10px rgba(255,200,61,.4)}.opt:hover,.opt:focus-visible{border-color:var(--glow);outline:none}
 #setL h3{margin:12px 0 4px;color:var(--gold)}
 .set-tabs{display:flex;gap:4px;border-bottom:2px solid var(--gold);margin-bottom:6px}.set-tab{background:rgba(10,4,24,.6);border:2px solid #4a4060;border-bottom:none;color:var(--paper);padding:6px 14px;font:700 14px var(--body);cursor:pointer;border-radius:4px 4px 0 0}.set-tab.on{background:var(--gold);color:#1a0a2a;border-color:var(--gold)}.set-tab:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+.pro-ok{color:#7aff7a;font-size:14px}
 .ctl-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0;font-size:14px}.ctl-row input[type=range]{flex:1;min-width:140px;accent-color:var(--gold)}.ctl-chk{cursor:pointer}.ctl-chk input{width:18px;height:18px;accent-color:var(--gold)}
 .ctl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}.ctl-box{border:1px solid #4a4060;border-radius:4px;padding:6px 10px;background:rgba(10,4,24,.5)}.ctl-box h4{margin:0 0 4px;color:var(--glow);font-size:14px}
 .ctl-box dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0;font-size:13px;align-items:baseline}.ctl-box dt{white-space:nowrap}.ctl-box dd{margin:0}.ctl-box kbd{border:1px solid var(--glow);border-radius:3px;padding:0 5px;color:var(--glow);font-size:12px}
@@ -317,26 +318,62 @@ function strip(wd,z0,z1,xf,hfn,mat,lift=.08){const len=Math.abs(z1-z0),n=Math.ce
 const vc=(o)=>lam(Object.assign({vertexColors:true},o));
 
 /* ---------- Fennick Sternenhut ---------- */
-/* Detaillierter Körper für Spielerfiguren: Beine mit Stiefeln, Oberkörper mit Gürtel, Arme mit Ellbogen und Händen, Stab in der Hand */
-function buildChar(g,robe){const skin=M('skin',()=>lam({color:0xffc8a0})),pants=M('pants',()=>lam({color:0x3a2a4a})),boot=M('boot',()=>lam({color:0x4a2a14})),belt=M('belt',()=>lam({color:0x5a3418})),
-    gold=M('buckle',()=>lam({color:0xffd040,emissive:0x402000})),eye=M('eye',()=>basic(0x120818)),beard=M('beardW',()=>lam({color:0xeeeeff})),cuff=M('cuff',()=>lam({color:0xe8d8a0}));const B={ph:0,bob:0};
-  for(const s of[-1,1]){const leg=new THREE.Group();leg.position.set(s*.2,.8,0);g.add(leg);P(G.cyl,pants,leg,0,-.32,0,.11,.64,.11);P(G.box,boot,leg,0,-.7,.07,.24,.17,.38);B[s<0?'legL':'legR']=leg;}
-  P(G.cone,robe,g,0,1.12,0,.62,1.4,.62);P(G.cyl,robe,g,0,1.56,0,.34,.56,.3);
-  P(G.cyl,belt,g,0,1.3,0,.4,.1,.36);P(G.box,gold,g,0,1.3,.36,.14,.11,.04);
-  for(const s of[-1,1])P(G.sph,robe,g,s*.37,1.78,0,.15);
-  P(G.sph,skin,g,0,1.98,0,.36);for(const s of[-1,1])P(G.sph,eye,g,s*.13,2.05,.31,.05,.06,.04);
-  P(G.sph,M('nose',()=>lam({color:0xff8a7a})),g,0,1.95,.36,.11);P(G.cone,beard,g,0,1.62,.24,.31,.68,.3).rotation.x=PI;
-  const hat=P(G.cone,robe,g,0,2.95,-.12,.55,1.7,.55);hat.rotation.x=-.35;P(G.cyl,robe,g,0,2.15,0,.88,.08,.88);
-  for(const s of[-1,1]){const sh=new THREE.Group();sh.position.set(s*.42,1.78,0);g.add(sh);P(G.cyl,robe,sh,0,-.22,0,.1,.46,.1);
-    const el=new THREE.Group();el.position.set(0,-.45,0);sh.add(el);P(G.cyl,robe,el,0,-.18,0,.12,.38,.12);P(G.cyl,cuff,el,0,-.36,0,.13,.06,.13);P(G.sph,skin,el,0,-.46,0,.11,.12,.1);
-    if(s<0){B.armL=sh;B.foreL=el;}else{B.armR=sh;B.foreR=el;}}
-  const grip=new THREE.Group();grip.position.set(0,-.46,0);B.foreR.add(grip);P(G.cyl,M('staff',()=>lam({color:0x6a3a1a})),grip,0,.2,0,.05,2.3,.05);P(G.sph,basic(0xaffcff),grip,0,1.35,0,.15);B.grip=grip;
-  g.userData.body=B;poseIdle(B,0);return B;}
+/* Figuren pro Klasse: gemeinsamer Körper (Beine, Arme mit Händen, Kopf mit Augen), Ausrüstung je nach Klasse */
+function buildChar(g,robe,cls){cls=cls||'magier';const mat=(k,c,e)=>M(k,()=>lam(e?{color:c,emissive:e}:{color:c}));
+  const skin=mat('skin',0xffc8a0),eye=M('eye',()=>basic(0x120818)),gold=mat('buckle',0xffd040,0x402000),steel=mat('steel',0xc8ccd8),steelD=mat('steelD',0x6a7080),
+    wood=mat('staff',0x6a3a1a),leather=mat('belt',0x5a3418),dark=mat('rogueD',0x1e1a26);
+  const B={ph:0,bob:0,top:3.8,orbY:1.35,orbS:1.3};
+  const legs=(pants,boot,tall)=>{for(const s of[-1,1]){const leg=new THREE.Group();leg.position.set(s*.2,.8,0);g.add(leg);P(G.cyl,pants,leg,0,-.32,0,.11,.64,.11);
+    if(tall)P(G.cyl,boot,leg,0,-.5,0,.135,.34,.135);P(G.box,boot,leg,0,-.7,.07,.24,.17,.38);B[s<0?'legL':'legR']=leg;}};
+  const arms=(sleeve,cuff)=>{for(const s of[-1,1]){const sh=new THREE.Group();sh.position.set(s*.42,1.78,0);g.add(sh);P(G.cyl,sleeve,sh,0,-.22,0,.1,.46,.1);
+    const el=new THREE.Group();el.position.set(0,-.45,0);sh.add(el);P(G.cyl,sleeve,el,0,-.18,0,.12,.38,.12);P(G.cyl,cuff,el,0,-.36,0,.13,.06,.13);P(G.sph,skin,el,0,-.46,0,.11,.12,.1);
+    if(s<0){B.armL=sh;B.foreL=el;}else{B.armR=sh;B.foreR=el;}}const gr=new THREE.Group();gr.position.set(0,-.46,0);B.foreR.add(gr);B.grip=gr;};
+  const head=(nose=true)=>{P(G.sph,skin,g,0,1.98,0,.36);for(const s of[-1,1])P(G.sph,eye,g,s*.13,2.05,.31,.05,.06,.04);if(nose)P(G.sph,mat('nose',0xff8a7a),g,0,1.95,.36,.11);};
+  if(cls==='ritter'){/* Sonnenritter: Rüstung, Helm mit Federbusch, Wappenrock, Schwert und Schild */
+    legs(steel,steelD,true);P(G.tap,steel,g,0,1.05,0,.46,.42,.42);P(G.box,robe,g,0,1.15,.23,.42,.85,.05);P(G.box,robe,g,0,1.15,-.23,.42,.85,.05);
+    P(G.cyl,steel,g,0,1.56,0,.38,.6,.32);P(G.cyl,leather,g,0,1.3,0,.42,.1,.37);P(G.box,gold,g,0,1.3,.37,.14,.11,.04);P(G.box,robe,g,0,1.6,.31,.3,.38,.03);
+    for(const s of[-1,1])P(G.sph,steel,g,s*.45,1.82,0,.21,.15,.21);head();P(G.box,mat('stache',0x7a4a20),g,0,1.86,.34,.2,.05,.04);
+    P(G.cap,steel,g,0,2.06,0,.41,.42,.41);P(G.box,steel,g,0,2.02,.37,.05,.26,.04);P(G.cyl,steelD,g,0,2.08,0,.42,.05,.42);
+    const pl=P(G.cone,robe,g,0,2.62,-.08,.13,.55,.32);pl.rotation.x=-.25;arms(steel,steelD);
+    P(G.box,steel,B.grip,0,.78,0,.09,1.25,.025);P(G.box,gold,B.grip,0,.12,0,.42,.06,.08);P(G.cyl,leather,B.grip,0,-.06,0,.04,.26,.04);P(G.sph,gold,B.grip,0,-.22,0,.06);
+    P(G.cyl,robe,B.foreL,-.17,-.25,0,.42,.06,.42).rotation.z=PI/2;P(G.torus,gold,B.foreL,-.2,-.25,0,.42,.42,.25).rotation.y=PI/2;P(G.sph,gold,B.foreL,-.22,-.25,0,.08);
+    B.top=3.1;B.orbY=1.42;B.orbS=.9;}
+  else if(cls==='feuer'){/* Feuerhexer: Hexenhut mit Knick, rote Haare, Zauberstab, Flamme in der Hand */
+    const hair=mat('fhair',0xff5a1a,0x401000);legs(mat('fpants',0x3a1010),mat('fboot',0x1a1010),true);P(G.cone,robe,g,0,1.2,0,.6,1.3,.6);
+    P(G.cyl,robe,g,0,1.56,0,.33,.56,.29);P(G.cyl,dark,g,0,1.34,0,.38,.16,.34);P(G.box,gold,g,0,1.34,.35,.12,.12,.04);for(const s of[-1,1])P(G.sph,robe,g,s*.37,1.78,0,.14);
+    P(G.sph,hair,g,0,1.98,-.1,.4,.42,.37);for(const s of[-1,1])P(G.cone,hair,g,s*.3,1.66,-.12,.13,.55,.13).rotation.x=PI;head();
+    P(G.cyl,robe,g,0,2.22,0,.95,.06,.95);P(G.cyl,mat('fband',0xffb020,0x603000),g,0,2.34,0,.5,.1,.5);P(G.cone,robe,g,0,2.85,-.05,.5,1.2,.5).rotation.x=-.12;
+    const tip=P(G.cone,robe,g,0,3.6,-.32,.24,.75,.24);tip.rotation.x=-1.0;arms(robe,mat('fcuff',0xffb020));
+    P(G.cyl,mat('wand',0x2a1408),B.grip,0,.18,0,.035,.8,.035);P(G.sph,basic(0xffd060),B.grip,0,.6,0,.07);
+    const fl=glow(0xff6a20,1);fl.position.set(0,-.58,0);B.foreL.add(fl);P(G.sph,basic(0xffa040),B.foreL,0,-.6,0,.09);B.top=3.7;B.orbY=.62;B.orbS=1;}
+  else if(cls==='druide'){/* Mooshüter: Kapuzenumhang mit Geweih, Fellkragen, Blätter, knorriger Stab */
+    const fur=mat('fur',0x6a4a2a),leaf=mat('leaf',0x4aa040),horn=mat('antler',0xd8c8a0);legs(mat('dpants',0x3a3020),leather,false);
+    P(G.cone,robe,g,0,1.05,0,.66,1.5,.66);P(G.cyl,robe,g,0,1.56,0,.35,.56,.31);P(G.cyl,mat('rope',0x9a7a40),g,0,1.3,0,.4,.07,.36);P(G.sph,leaf,g,0,1.3,.37,.1,.07,.05);
+    P(G.torus,fur,g,0,1.84,0,.36,.36,.55).rotation.x=PI/2;for(const s of[-1,1]){const l=P(G.cone,leaf,g,s*.45,1.86,0,.2,.32,.2);l.rotation.z=-s*1.0;}
+    head();P(G.cone,mat('dbeard',0x8aa080),g,0,1.66,.24,.27,.55,.26).rotation.x=PI;P(G.cap,robe,g,0,2.06,-.04,.43,.46,.45);P(G.cone,robe,g,0,2.02,-.42,.2,.42,.2).rotation.x=-1.25;
+    for(const s of[-1,1]){P(G.cyl,horn,g,s*.24,2.6,-.05,.045,.55,.045).rotation.z=-s*.5;P(G.cyl,horn,g,s*.42,2.78,-.05,.035,.32,.035).rotation.z=-s*1.15;P(G.cyl,horn,g,s*.2,2.95,-.02,.035,.28,.035).rotation.z=s*.3;}
+    arms(robe,fur);P(G.cyl,wood,B.grip,0,.18,0,.07,2.4,.07);P(G.torus,wood,B.grip,0,1.48,0,.2,.2,.35);for(const s of[-1,1])P(G.sph,leaf,B.grip,s*.13,1.3,.03,.1,.05,.14);B.top=3.2;B.orbY=1.48;}
+  else if(cls==='strolch'){/* Glücksstrolch: Kapuze, Maske, kurzer Umhang, Wams mit Taschen, Dolche */
+    legs(mat('spants',0x2a2230),leather,true);P(G.cone,robe,g,0,1.32,0,.52,1.0,.52);P(G.cyl,robe,g,0,1.56,0,.33,.56,.29);P(G.cyl,leather,g,0,1.3,0,.38,.09,.34);
+    for(const s of[-1,1])P(G.box,leather,g,s*.3,1.22,.24,.13,.15,.08);P(G.box,dark,g,0,1.58,.3,.08,.78,.03).rotation.z=.7;
+    const cp=P(G.box,dark,g,0,1.3,-.34,.62,1.1,.05);cp.rotation.x=.12;for(const s of[-1,1])P(G.sph,robe,g,s*.37,1.78,0,.14);
+    head(false);P(G.cyl,dark,g,0,1.9,0,.375,.15,.375);P(G.cap,dark,g,0,2.06,-.03,.41,.44,.43);P(G.cone,dark,g,0,2.0,-.42,.18,.42,.18).rotation.x=-1.25;
+    arms(robe,leather);P(G.box,steel,B.grip,0,.38,0,.065,.52,.02);P(G.box,gold,B.grip,0,.1,0,.2,.04,.05);P(G.cyl,leather,B.grip,0,-.02,0,.035,.18,.035);
+    P(G.box,leather,g,-.32,1.12,.12,.08,.34,.05).rotation.z=.3;B.top=2.6;B.orbY=.66;B.orbS=.8;}
+  else{/* Sternenmagier: Spitzhut, Bart, langer Stab */
+    legs(mat('pants',0x3a2a4a),mat('boot',0x4a2a14),false);P(G.cone,robe,g,0,1.12,0,.62,1.4,.62);P(G.cyl,robe,g,0,1.56,0,.34,.56,.3);
+    P(G.cyl,leather,g,0,1.3,0,.4,.1,.36);P(G.box,gold,g,0,1.3,.36,.14,.11,.04);for(const s of[-1,1])P(G.sph,robe,g,s*.37,1.78,0,.15);
+    head();P(G.cone,mat('beardW',0xeeeeff),g,0,1.62,.24,.31,.68,.3).rotation.x=PI;
+    const hat=P(G.cone,robe,g,0,2.95,-.12,.55,1.7,.55);hat.rotation.x=-.35;P(G.cyl,robe,g,0,2.15,0,.88,.08,.88);arms(robe,mat('cuff',0xe8d8a0));
+    P(G.cyl,wood,B.grip,0,.2,0,.05,2.3,.05);P(G.sph,basic(0xaffcff),B.grip,0,1.35,0,.15);}
+  poseIdle(B,0);return B;}
+function rebuildBody(g,refs,cls){if(refs.root)g.remove(refs.root);refs.root=new THREE.Group();g.add(refs.root);const B=buildChar(refs.root,refs.robe,cls);refs.grip=B.grip;refs.cls=cls;g.userData.body=B;
+  if(refs.orb){if(refs.orb.parent)refs.orb.parent.remove(refs.orb);refs.orb.position.set(0,B.orbY,0);refs.grip.add(refs.orb);}return B;}
 function poseIdle(B,t){B.armL.rotation.set(0,0,-.12+Math.sin(t*2)*.02);B.foreL.rotation.set(-.15,0,0);B.armR.rotation.set(-.45,0,.12);B.foreR.rotation.set(-.55,0,0);B.grip.rotation.set(1,0,-.12);B.legL.rotation.set(0,0,0);B.legR.rotation.set(0,0,0);}
 function animBody(g,spd,dt){const B=g.userData.body;if(!B)return;const k=Math.min(1,spd/9);poseIdle(B,time);if(k<.04){B.bob=0;return;}B.ph+=dt*(5+spd*.55);const s=Math.sin(B.ph)*k;
   B.legL.rotation.x=s*.65;B.legR.rotation.x=-s*.65;B.armL.rotation.x=-s*.55;B.foreL.rotation.x=-.15-.35*k;B.armR.rotation.x=-.45+s*.12;B.bob=Math.abs(Math.cos(B.ph))*.08*k;}
 const hero=new THREE.Group(),HEROL={},heroLast=new THREE.Vector3();
-(()=>{const robe=lam({map:T.robe(1)});const B=buildChar(hero,robe);HEROL.robe=robe;HEROL.grip=B.grip;const orb=glow(0x5ff3ff,1.3);orb.position.set(0,1.35,0);B.grip.add(orb);HEROL.orb=orb;})();
+(()=>{const robe=lam({map:T.robe(1)});HEROL.robe=robe;HEROL.orb=glow(0x5ff3ff,1.3);rebuildBody(hero,HEROL,'magier');})();
 scene.add(hero);
 
 /* ---------- Sol Glutbart: Sonne mit Gesicht und goldenen Beinen ---------- */
@@ -1206,10 +1243,12 @@ const SKINS={
 function skinIdx(){const i=(player.skins&&player.skins[player.cls])|0;return SKIN_LV[i]<=player.lv?Math.max(0,Math.min(3,i)):0;}
 function setSkin(i){if(SKIN_LV[i]>player.lv){toast(`Dieser Skin wird auf Stufe ${SKIN_LV[i]} frei`);return;}player.skins=player.skins||{};player.skins[player.cls]=i;applyClassLook();beep(880,.12,'triangle');flash((CLS[player.cls]||CLS.magier).c,.25);save();}
 function applyClassLook(){dressHero(hero,HEROL,player.cls,skinIdx());}
-function dressHero(g,refs,cls,sk){const c=CLS[cls]||CLS.magier,s=(SKINS[cls]||SKINS.magier)[sk|0]||{robe:c.robe,orb:c.orb};refs.robe.color.setHex(s.robe);if(refs.orb&&refs.orb.parent)refs.orb.parent.remove(refs.orb);refs.orb=glow(s.orb,1.3);if(refs.grip){refs.orb.position.set(0,1.35,0);refs.grip.add(refs.orb);}else{refs.orb.position.set(.6,2.3,.3);g.add(refs.orb);}
-  if(refs.acc)g.remove(refs.acc);refs.acc=classAcc(cls);g.add(refs.acc);
-  if(sk>=2){const t=glow(s.orb,1.1);t.position.set(0,3.85,-.44);refs.acc.add(t);for(let i=0;i<3;i++){const sp=glow(s.orb,.5);const a=i/3*TAU;sp.position.set(Math.sin(a)*.95,1.2+i*.35,Math.cos(a)*.95);refs.acc.add(sp);}}
-  if(sk>=3){const h=P(G.torus,basic(s.orb),refs.acc,0,4.35,-.5,.42,.42,.35);h.rotation.x=PI/2;}}
+function dressHero(g,refs,cls,sk){const c=CLS[cls]||CLS.magier,s=(SKINS[cls]||SKINS.magier)[sk|0]||{robe:c.robe,orb:c.orb};
+  if(refs.cls!==cls||!refs.root)rebuildBody(g,refs,cls);const B=g.userData.body;refs.robe.color.setHex(s.robe);
+  if(refs.orb&&refs.orb.parent)refs.orb.parent.remove(refs.orb);refs.orb=glow(s.orb,B.orbS);refs.orb.position.set(0,B.orbY,0);refs.grip.add(refs.orb);
+  if(refs.acc)g.remove(refs.acc);refs.acc=new THREE.Group();g.add(refs.acc);
+  if(sk>=2){for(let i=0;i<3;i++){const sp=glow(s.orb,.5);const a=i/3*TAU;sp.position.set(Math.sin(a)*.95,1.2+i*.35,Math.cos(a)*.95);refs.acc.add(sp);}}
+  if(sk>=3){const h=P(G.torus,basic(s.orb),refs.acc,0,B.top+.4,-.1,.42,.42,.35);h.rotation.x=PI/2;}}
 function classAcc(cls){const a=new THREE.Group();
   if(cls==='ritter'){P(G.cyl,lam({color:0xd8a020}),a,-.75,1.2,.05,.62,.12,.62).rotation.z=PI/2;P(G.sph,basic(0xfff0a0),a,-.83,1.2,.05,.18);}
   else if(cls==='druide'){const ring=P(G.torus,lam({color:0x3aa040}),a,0,2.28,0,.72,.72,1.6);ring.rotation.x=PI/2;for(let i=0;i<6;i++){const t=i/6*TAU;P(G.sph,lam({color:0x6ae06a}),a,Math.sin(t)*.75,2.32,Math.cos(t)*.75,.16,.08,.26);}}
@@ -1488,8 +1527,7 @@ function textTex(txt,w,h,font,fg,bg){const c=document.createElement('canvas');c.
 function setSpriteTex(s,t){if(s.material.map)s.material.map.dispose();s.material.map=t;s.material.needsUpdate=true;}
 function newSprite(y,sx,sy){const s=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthTest:false,fog:false}));s.position.y=y;s.scale.set(sx,sy,1);s.renderOrder=5;return s;}
 const myBubble=newSprite(5.4,7,2.2);myBubble.visible=false;hero.add(myBubble);let myBubT=0;
-function heroMesh(hue){const g=new THREE.Group();const robe=lam({map:T.robe(1),color:new THREE.Color().setHSL(hue,.55,.72)});const B=buildChar(g,robe);
-  const c=new THREE.Color().setHSL(hue,.9,.65);const orb=glow(c.getHex(),1.3);orb.position.set(0,1.35,0);B.grip.add(orb);g.userData.refs={robe,orb,grip:B.grip};scene.add(g);return g;}
+function heroMesh(hue){const g=new THREE.Group();const robe=lam({map:T.robe(1),color:new THREE.Color().setHSL(hue,.55,.72)});const refs={robe,orb:glow(new THREE.Color().setHSL(hue,.9,.65).getHex(),1.3)};rebuildBody(g,refs,'magier');g.userData.refs=refs;scene.add(g);return g;}
 function newRemote(p,pr){const hue=isFinite(+pr.h)?+pr.h:.5;const g=heroMesh(hue);const tag=newSprite(4.4,5,1.25);g.add(tag);const bub=newSprite(5.6,7,2.2);bub.visible=false;g.add(bub);
   const cl=isCls(pr.cl)?pr.cl:'magier',sk=Math.max(0,Math.min(3,pr.sk|0));dressHero(g,g.userData.refs,cl,sk);
   const r={g,tag,bub,hue,cl,sk,tp:new THREE.Vector3(pr.p[0],pr.p[1],pr.p[2]),rot:pr.p[3],name:'Zauberer',lv:1,rg:'',sayT:pr.say&&pr.say.t,shN:pr.sh&&pr.sh.n,emT:pr.em&&pr.em.t,em:null,bubT:0,guest:p.guest};
@@ -1611,7 +1649,7 @@ if(touchMode){let ek=0;$('bEmote').addEventListener('contextmenu',e=>{e.preventD
 
 /* ================= SPIEL-LOG / UPDATES ================= */
 const CHANGELOG=[
- {v:'1.5',t:'Rucksack, Skins und Tanz',d:'24.11.2026',items:['Einstellungen (P) haben jetzt einen Tab „Steuerung“ mit allen Tasten, Kamera-Empfindlichkeit und Y-Achse umkehren.','Detailliertere Figuren: Beine mit Stiefeln, Oberkörper mit Gürtel, Arme mit Ellbogen und Händen, Augen. Fennick hält den Stab jetzt in der Hand, und beim Laufen schwingen Arme und Beine. Gesten wie Winken, Jubeln, Caramell-Tanz und UwU nutzen die Arme.','Die große Stadt heißt jetzt Butterbühl.','Die Minikarte zeigt Quest-NPCs (! und ?) nur noch, wenn sie in der Nähe sind.','Neues Inventar (I) im Rucksack-Stil: Gegenstände belegen je nach Größe mehrere Felder, Ausrüstungspuppe mit vier Plätzen, Infofeld mit Vergleich, Gewicht und Tragelast. Ziehen und Ablegen zum Anlegen, Verkaufen oder Wegwerfen, Doppelklick zum Anlegen oder Trinken.','Skins: vier pro Klasse, frei auf Stufe 1, 5, 10 und 20. Auswahl im Inventar unter Garderobe. Höhere Skins leuchten und haben einen Heiligenschein. Mitspieler sehen deinen Skin.','Kameraansichten mit Taste V: Normal, Weit, Schulter, Ego-Sicht und Von oben.','Einstellungen (P): Grafikstufe Retro, Ausgewogen oder Scharf. Standard ist jetzt Ausgewogen mit weniger Wackeln und schärferem Bild.','Neue Gesten: 5 Caramell-Tanz mit Musik, 6 UwU mit Herzchen.']},
+ {v:'1.5',t:'Rucksack, Skins und Tanz',d:'24.11.2026',items:['Jede Klasse hat jetzt ein eigenes Aussehen: Magier mit Spitzhut und Stab, Feuerhexer mit Hexenhut, roten Haaren, Zauberstab und Flamme in der Hand, Sonnenritter in Rüstung mit Helm, Schwert und Schild, Mooshüter mit Kapuze, Geweih und knorrigem Stab, Glücksstrolch mit Kapuze, Maske, Umhang und Dolch.','Einstellungen (P) haben einen Tab „Profil“ zum Ändern des Namens.','Einstellungen (P) haben jetzt einen Tab „Steuerung“ mit allen Tasten, Kamera-Empfindlichkeit und Y-Achse umkehren.','Detailliertere Figuren: Beine mit Stiefeln, Oberkörper mit Gürtel, Arme mit Ellbogen und Händen, Augen. Fennick hält den Stab jetzt in der Hand, und beim Laufen schwingen Arme und Beine. Gesten wie Winken, Jubeln, Caramell-Tanz und UwU nutzen die Arme.','Die große Stadt heißt jetzt Butterbühl.','Die Minikarte zeigt Quest-NPCs (! und ?) nur noch, wenn sie in der Nähe sind.','Neues Inventar (I) im Rucksack-Stil: Gegenstände belegen je nach Größe mehrere Felder, Ausrüstungspuppe mit vier Plätzen, Infofeld mit Vergleich, Gewicht und Tragelast. Ziehen und Ablegen zum Anlegen, Verkaufen oder Wegwerfen, Doppelklick zum Anlegen oder Trinken.','Skins: vier pro Klasse, frei auf Stufe 1, 5, 10 und 20. Auswahl im Inventar unter Garderobe. Höhere Skins leuchten und haben einen Heiligenschein. Mitspieler sehen deinen Skin.','Kameraansichten mit Taste V: Normal, Weit, Schulter, Ego-Sicht und Von oben.','Einstellungen (P): Grafikstufe Retro, Ausgewogen oder Scharf. Standard ist jetzt Ausgewogen mit weniger Wackeln und schärferem Bild.','Neue Gesten: 5 Caramell-Tanz mit Musik, 6 UwU mit Herzchen.']},
  {v:'1.4',t:'Wähle deinen Weg',d:'24.11.2026',items:['Neuer Skilltree (K): drei Zweige mit je vier Stufen, Verbindungslinien und neuen Skills wie Glutblut, Inferno, Lebensquell, Rindenhaut, Schildmeister, Sternschnuppe und den Spitzen Sonnenzorn, Ewiger Wald und Kosmos.','Quests verfolgen: Im Questbuch (L) wählst du eine Quest, dann zeigen Karte, Minikarte und die Anzeige oben rechts nur noch ihre Ziele.','NPCs mit Aufträgen stehen auf der großen Karte mit Abzeichen (! neu, ? abgeben) und Namen, auf der Minikarte auch am Rand.','Eigener Name: bei der Klassenwahl oder unter online. Mitspieler sehen ihn über deinem Kopf, auf der Karte und im Chat.','Tag oder Nacht per Abstimmung: Klick auf die Uhr. Stimmt mehr als die Hälfte der Spieler zu, wechselt die Tageszeit für alle.','Karte und Minikarte zeigen Mitspieler als Pfeil in ihrer Klassenfarbe mit Blickrichtung, auf der großen Karte mit Name, Klasse und Stufe. Ein Klick auf einen Mitspieler bringt dich zu ihm. Ist jemand außerhalb der Minikarte, zeigt ein Pfeil am Rand in seine Richtung.','Die Kamera geht nicht mehr durch Häuser, Mauern, Türme und Hügel. Sie rückt automatisch näher an Fennick heran.','Neues Spiel startet jetzt mit einer Klassenwahl: Sternenmagier, Feuerhexer, Sonnenritter, Mooshüter oder Glücksstrolch.','Jede Klasse hat eigene Herzen, Stärken und Schwächen. Manche können ihren Spezialzauber schon ab Stufe 1.','Fennick sieht je nach Klasse anders aus: andere Robenfarbe, eigener Zauberblitz, Schild, Blätterkranz, Umhang oder Flammenhut.','Alte Spielstände spielen als Sternenmagier weiter.','Klasse wechseln mit Taste O (oder im Talentfenster): Auf Stufe 10, 20, 30 … ist ein Wechsel kostenlos, sonst kostet er Gold. Stufe, Talente, Ausrüstung und Quests bleiben erhalten.','Mehrspieler: Andere sehen deine Klasse an Robe, Zubehör, Zauberfarbe und am Symbol über deinem Namen. Auch die Spielerliste zeigt die Klasse.']},
  {v:'1.3',t:'Höfe, Häfen und Halunken',d:'24.11.2026',items:['Sieben neue Quests: Schafe zählen, Goldene Kürbisse, Steckbriefe, Signalfeuer, Das dunkle Leuchtfeuer, Die Glitzermine und Wespenplage.','Vier gesuchte Schurken mit Namen, Lebensbalken und Beute: Räuberhauptmann Grimmbart, Glutkönig Funkenzahn, Sumpfhexer Quaxl und Brummfrost der Eisyeti.','Neue Orte: das Fischerdorf Krötenhafen mit Stegen und Booten, der Glimmerturm (ein Leuchtturm), die Glitzermine, eine Karawanserei, der Gasthof „Zur Krummen Gabel“ und die Uralte Eiche, unter der man rasten kann.','Sieben neue Höfe: Apfelhof mit Obstgarten, Kürbishof, Schäferei mit Weide, Weinberg, Imkerei mit Bienenstöcken, Kuhhof und Knollenhof.','Tiere: Schafe, Kühe und Hühner laufen auf Weiden und durch die Dörfer.','Fünf neue Sonnenschreine für die Schnellreise und 13 neue Orte auf der Weltkarte.']},
  {v:'1.2',t:'Das große Land',d:'24.11.2026',items:['Die ganze Welt ist fünfmal so groß: Alle Regionen, Wege und Orte sind mitgewachsen, mit Hügeln, Bergen, weiten Wäldern und einem breiten Fluss.','Butterbühl ist jetzt eine echte Großstadt: über tausend schiefe Häuser, Straßenraster, Ringstraße, Stadtmauer mit 16 Türmen und vier Torburgen, Spaziergänger in den Gassen.','Neue Stadtviertel: Kathedrale mit Friedhof, Sternenakademie mit Turm, Arena der Träume, Stadtpark mit Teich und Pavillon, Kornmarkt, dazu Rathaus, Gasthaus und Schmiede am Marktplatz.','Neue Region hinter der Leuchtschlucht im Nordwesten: Die Frostzacken, verschneite Berge mit Frostkobolden, einem Eremiten und Schneefall.','Neue Quests: Post für Butterbühl (Postbote Pips), Sternsplitter (Astronomin Vega) und die Arena der Träume mit Wellenkämpfen in immer schwereren Runden (Arenameister Brakus).','Reisebesen: bei Besenmacherin Ruthilde am Kornmarkt kaufen, mit B aufsitzen und gut zweieinhalbmal so schnell reisen.','Drei neue Weiler (Krummbach, Wackelfurt, Hinkelhain), mehr Höfe, Ruinen, Lager, Wachtürme, Seen, 80 Truhen und 15 Sonnenschreine für die Schnellreise.','Weltkarte mit stärkerem Zoom: Nah herangezoomt siehst du jedes Haus und jede Gasse der Stadt.','Die Welt wird für alle gleich erzeugt: Mitspieler sehen dieselbe Stadt.','Alte Spielstände laufen weiter, deine Position wird auf die neue Weltgröße umgerechnet.']},
@@ -2503,13 +2541,13 @@ function renderInfo(){const box=$('skInfo');if(!box)return;box.textContent='';co
   box.appendChild(row);}
 
 /* ===== Einstellungen: Grafik und Kamera ===== */
-function renderSet(){const L=$('setL');L.textContent='';const tb=el('div','set-tabs');[['gfx','Grafik & Kamera'],['ctl','Steuerung']].forEach(([k,n])=>{const b=el('button','set-tab'+(setTab===k?' on':''),n);b.type='button';b.setAttribute('aria-pressed',setTab===k);b.onclick=()=>{setTab=k;renderSet();};tb.appendChild(b);});L.appendChild(tb);if(setTab==='ctl'){renderCtl(L);return;}
+function renderSet(){const L=$('setL');L.textContent='';const tb=el('div','set-tabs');[['pro','Profil'],['gfx','Grafik & Kamera'],['ctl','Steuerung']].forEach(([k,n])=>{const b=el('button','set-tab'+(setTab===k?' on':''),n);b.type='button';b.setAttribute('aria-pressed',setTab===k);b.onclick=()=>{setTab=k;renderSet();};tb.appendChild(b);});L.appendChild(tb);if(setTab==='ctl'){renderCtl(L);return;}if(setTab==='pro'){renderPro(L);return;}
   L.appendChild(el('h3','','Grafik'));L.appendChild(el('p','sk-help','Weniger Wackeln und mehr Auflösung sehen ruhiger aus, brauchen aber mehr Leistung. Beim Ändern lädt das Spiel kurz neu, dein Spielstand bleibt erhalten.'));
   const gr=el('div','row2');[['Retro','Starkes PS1-Wackeln, niedrige Auflösung, am schnellsten'],['Ausgewogen','Leichtes Wackeln, schärfer (Standard)'],['Scharf','Kein Wackeln, volle Auflösung, braucht am meisten Leistung']].forEach(([n,d],i)=>{const b=el('button','opt'+(GFX===i?' on':''));b.type='button';b.appendChild(el('b','',n));b.appendChild(el('small','',d));
     b.onclick=()=>{if(i===GFX)return;try{localStorage.setItem('sf-gfx',String(i));}catch(e){}if(state!=='title')save();location.reload();};gr.appendChild(b);});L.appendChild(gr);
   L.appendChild(el('h3','','Kamera (Taste V)'));const cr=el('div','row2');CAMN.forEach((n,i)=>{const b=el('button','opt'+(camMode===i?' on':''));b.type='button';b.appendChild(el('b','',n));b.appendChild(el('small','',['Hinter Fennick','Weiter Überblick','Nah über der Schulter','Durch Fennicks Augen','Von hoch oben'][i]));b.onclick=()=>{setCamMode(i);renderSet();};cr.appendChild(b);});L.appendChild(cr);}
 /* Einstellungen: Tab Steuerung (Tastenbelegung, Maus-Empfindlichkeit, Y-Achse) */
-let setTab='gfx',sensV=null,invyV=null;
+let setTab='pro',sensV=null,invyV=null;
 function SENS(){if(sensV===null){try{const v=parseFloat(localStorage.getItem('sf-sens'));sensV=isFinite(v)?Math.max(.3,Math.min(2.5,v)):1;}catch(e){sensV=1;}}return sensV;}
 function INVY(){if(invyV===null){try{invyV=localStorage.getItem('sf-invy')==='1';}catch(e){invyV=false;}}return invyV;}
 const CTL=[
@@ -2529,6 +2567,12 @@ function renderCtl(L){
   for(const[cat,rows]of CTL){const box=el('div','ctl-box');box.appendChild(el('h4','',cat));const dl=el('dl');for(const[k,d]of rows){const dt=el('dt');for(const part of k.split(' / ')){if(dt.childNodes.length)dt.appendChild(document.createTextNode(' / '));dt.appendChild(el('kbd','',part));}dl.append(dt,el('dd','',d));}box.appendChild(dl);grid.appendChild(box);}
   L.appendChild(grid);
   L.appendChild(el('p','sk-help','Auf dem Handy: linker Stick zum Laufen, Wischen auf dem Bildschirm dreht die Kamera, die Knöpfe rechts zaubern. Lange auf „Geste“ drücken heilt Freunde.'));}
+function renderPro(L){L.appendChild(el('h3','','Name'));L.appendChild(el('p','sk-help','Dein Name steht über deinem Kopf, auf der Karte, im Chat und in der Spielerliste. Leer lassen für den Standardnamen.'));
+  const f=el('form','ctl-row');const i=el('input');i.id='proName';i.maxLength=20;i.placeholder='Dein Name';i.value=customName();i.setAttribute('aria-label','Dein Name');
+  i.style.cssText='flex:1;min-width:180px;font:16px var(--body);padding:8px 10px;border-radius:4px;border:2px solid var(--gold);background:#120828;color:var(--paper)';for(const ev of['keydown','keyup'])i.addEventListener(ev,e=>e.stopPropagation());
+  const b=el('button','btn','Name speichern');b.type='submit';const ok=el('span','pro-ok','');f.append(i,b,ok);f.onsubmit=e=>{e.preventDefault();const n=setCustomName(i.value);i.value=n;ok.textContent=n?`✓ Du heißt jetzt ${n}`:'✓ Standardname';toast(n?`Du heißt jetzt ${n}`:'Name zurückgesetzt');save();};L.appendChild(f);
+  L.appendChild(el('h3','','Klasse und Aussehen'));const c=CL();L.appendChild(el('p','',`${c.ic} ${c.n} · Stufe ${player.lv} · Skin: ${((SKINS[player.cls]||SKINS.magier)[skinIdx()]||{}).n||'-'}`));
+  const r=el('div','row2');const b1=el('button','btn','Klasse wechseln (O)');b1.type='button';b1.onclick=()=>{closeMenu('setP');openMenu('clsP',renderCls);};const b2=el('button','btn','Skins im Inventar (I)');b2.type='button';b2.onclick=()=>{closeMenu('setP');openMenu('invP',renderInv);};r.append(b1,b2);L.appendChild(r);}
 $('setBtn').onclick=()=>openMenu('setP',renderSet);$('setX').onclick=()=>closeMenu('setP');
 addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='Escape'&&!$('setP').hidden)closeMenu('setP');else if(e.code==='KeyP'&&(state==='play'||!$('setP').hidden))openMenu('setP',renderSet);});
 
