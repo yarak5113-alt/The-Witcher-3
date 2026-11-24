@@ -14,6 +14,6 @@ Ein 3D-Rollenspiel im PS1-Look, das komplett im Browser läuft – eine einzige 
 ## Steuerung
 `WASD` laufen · Maus ziehen Kamera · `Leertaste` springen · Klick/`F` zaubern · `E` sprechen ·
 `H` Heiltrank · `L` Questbuch (Quest verfolgen) · `I` Inventar · `K` Skilltree · `O` Klasse wechseln · `M` Karte ·
-`B` Reisebesen · `Enter` Chat · `1`–`4` Gesten · `G` Freunde heilen
+`B` Reisebesen · `Enter` Chat · `1`–`6` Gesten (`5` Caramell-Tanz, `6` UwU) · `G` Freunde heilen · `V` Kameraansicht · `P` Einstellungen
 
 Der Spielstand wird automatisch im Browser gespeichert.
