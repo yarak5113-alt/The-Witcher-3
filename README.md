@@ -9,10 +9,11 @@ Ein 3D-Rollenspiel im PS1-Look, das komplett im Browser läuft – eine einzige 
 - 5 Klassen: Sternenmagier, Feuerhexer, Sonnenritter, Mooshüter, Glücksstrolch
 - Quests, Talente, Beute, Reisebesen, Weltkarte
 - Online-Mehrspieler über Firebase: Alle, die das Spiel öffnen, treffen sich in derselben Welt
+- Mitspieler auf der Karte, eigene Namen, Tag/Nacht per Abstimmung (Klick auf die Uhr)
 
 ## Steuerung
 `WASD` laufen · Maus ziehen Kamera · `Leertaste` springen · Klick/`F` zaubern · `E` sprechen ·
-`H` Heiltrank · `L` Questbuch · `I` Inventar · `K` Talente · `O` Klasse wechseln · `M` Karte ·
+`H` Heiltrank · `L` Questbuch (Quest verfolgen) · `I` Inventar · `K` Skilltree · `O` Klasse wechseln · `M` Karte ·
 `B` Reisebesen · `Enter` Chat · `1`–`4` Gesten · `G` Freunde heilen
 
 Der Spielstand wird automatisch im Browser gespeichert.

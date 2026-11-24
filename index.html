@@ -30,6 +30,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
 .panel{position:fixed;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;background:rgba(5,2,12,.6);padding-inline:max(16px,env(safe-area-inset-left,0px))}
 .panel .box{background:var(--panel);border:2px solid var(--gold);border-radius:4px;padding:18px 22px;width:min(560px,100%);max-height:80vh;overflow:auto;box-shadow:0 0 40px rgba(120,60,255,.5)}
 .panel h2{font-family:var(--display);color:var(--gold);margin:0 0 12px;font-weight:400;font-size:24px}
+.qhint{font-size:14px;opacity:.85;margin:0 0 6px}.q.trk{background:rgba(255,210,58,.08);border-left:3px solid #ffd23a;padding-left:8px}.q .qtb{margin-top:6px;font-size:13px;padding:3px 10px}
 .q{padding:8px 0;border-top:1px solid rgba(255,200,61,.25)}.q h3{margin:0;font-size:16px;color:var(--glow)}.q.done h3{color:#8a8aa0;text-decoration:line-through}.q p{margin:3px 0 0;font-size:15px;line-height:1.4}
 .q .tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-left:6px}
 .shop{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid rgba(255,200,61,.25)}.shop p{margin:2px 0 0;font-size:14px;opacity:.85}
@@ -78,6 +79,15 @@ button.big:hover,button.big:focus-visible{background:#ff5a2e;outline:2px solid v
 .item ul{margin:4px 0;padding-left:16px}.item .up{color:#5aff8a;font-style:normal}.item .dn{color:#ff7a7a;font-style:normal}.item.empty{opacity:.5;border-style:dashed}
 .ibtn{display:flex;gap:6px;flex-wrap:wrap}.ibtn .btn{font-size:12px;padding:4px 8px}
 .tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px}.tcol h3{color:var(--c)}
+.ttree{position:relative;height:320px;margin:6px 4px 30px;border-radius:8px;background:radial-gradient(ellipse at 50% 40%,color-mix(in srgb,var(--c) 14%,transparent),rgba(0,0,0,.25))}
+.ttree svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.ttree line{stroke:#4a4060;stroke-width:4;vector-effect:non-scaling-stroke}.ttree line.on{stroke:var(--c)}
+.tn{position:absolute;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;border:3px solid #4a4060;background:#170c2c;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;filter:grayscale(1) brightness(.6)}
+.tn.av,.tn.wait,.tn.on,.tn.max{filter:none}.tn.av{border-color:var(--c);box-shadow:0 0 14px var(--c);animation:tnp 1.6s ease-in-out infinite}.tn.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 45%,#170c2c)}.tn.max{border-color:#fff;background:var(--c)}
+.tn.sel{outline:3px solid #fff;outline-offset:3px}.tn:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
+.tn .rk{position:absolute;bottom:-7px;right:-9px;font:700 11px var(--body);font-style:normal;background:#000;color:#fff;border:1px solid var(--c);border-radius:8px;padding:0 4px}
+.tn .nm{position:absolute;top:56px;left:50%;transform:translateX(-50%);white-space:nowrap;font:600 12px var(--body);font-style:normal;color:var(--paper);text-shadow:0 1px 2px #000}
+@keyframes tnp{50%{box-shadow:0 0 24px var(--c)}}
+.tinfo{border:2px solid var(--c,var(--gold));border-radius:6px;padding:10px 12px;margin:4px 0 12px;background:rgba(10,4,24,.6);font-size:14px;line-height:1.45}.tinfo b{display:block;font-size:16px;color:var(--c,var(--gold))}.tinfo p{margin:4px 0}.tinfo .why{color:#ffb0a0}.tinfo .btn{margin-top:6px}
 .tal{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;border-left:3px solid var(--c);padding:6px 8px;margin-bottom:6px;background:rgba(255,255,255,.03)}.tal small{grid-column:1;opacity:.8;font-size:12px}.tal .btn{grid-row:1/3;grid-column:2;padding:4px 12px}
 .tb.sp{width:52px;height:52px;font-size:11px}#bFire{right:calc(max(16px,env(safe-area-inset-right,0px)) + 154px);bottom:calc(env(safe-area-inset-bottom,0px) + 166px)}
 #bFrost{right:calc(max(16px,env(safe-area-inset-right,0px)) + 88px);bottom:calc(env(safe-area-inset-bottom,0px) + 172px)}#bShield{right:calc(max(16px,env(safe-area-inset-right,0px)) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 268px)}
@@ -87,7 +97,9 @@ button.big:hover,button.big:focus-visible{background:#ff5a2e;outline:2px solid v
 .mapwrap{position:relative;width:min(100%,56vh);aspect-ratio:1;margin:0 auto;max-width:100%}#bigmap{width:100%;height:100%;display:block;border:2px solid var(--gold);border-radius:4px;cursor:crosshair;touch-action:none;background:#08040f}
 #mapTip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--glow);padding:3px 8px;font-size:13px;border-radius:3px;white-space:nowrap;z-index:2}
 .maphelp{font-size:12px;opacity:.75;margin:8px 0 0;line-height:1.4}
-#clock{font-size:13px;font-weight:700;color:#e8dcff}
+#clock{font-size:13px;font-weight:700;color:#e8dcff;pointer-events:auto;cursor:pointer;text-decoration:underline dotted rgba(232,220,255,.5)}
+#voteB{position:fixed;top:calc(env(safe-area-inset-top,0px) + 64px);left:50%;transform:translateX(-50%);z-index:6;background:rgba(10,4,24,.88);border:2px solid var(--gold);border-radius:6px;padding:8px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100vw - 32px);font-size:14px;pointer-events:auto}#voteB[hidden]{display:none}
+#nameI{font:16px var(--body);padding:8px 10px;border-radius:4px;border:2px solid var(--gold);background:#120828;color:var(--paper);width:min(320px,100%)}
 #online{pointer-events:auto;align-self:flex-start;display:flex;align-items:center;gap:6px;font:700 13px var(--body);color:var(--paper);background:rgba(10,4,24,.7);border:1px solid rgba(255,200,61,.5);border-radius:12px;padding:3px 10px;cursor:pointer}
 #online i{width:8px;height:8px;border-radius:50%;background:#7a7a8a}#online.live i{background:#5aff8a;box-shadow:0 0 6px #5aff8a}
 #online:hover,#online:focus-visible{border-color:var(--glow);outline:none}
@@ -102,13 +114,13 @@ button.big:hover,button.big:focus-visible{background:#ff5a2e;outline:2px solid v
 </style>
 
 <canvas id="c" tabindex="-1"></canvas><div id="crt"></div>
-<div class="hudL"><div class="hearts" id="hearts"></div><div class="stats"><span id="lv"></span><span class="g" id="gold"></span><span class="p" id="pots"></span></div><div class="xpbar"><div id="xpf"></div></div><div class="mpbar"><div id="mpf"></div></div><div id="mpTxt"></div><div id="region"></div><div id="clock"></div><div id="wpTxt" hidden></div><button id="online" type="button"><i></i><span id="onlineN">Verbinde …</span></button><div class="pills"><button id="mapBtn" class="pill" type="button">Karte <kbd>M</kbd></button><button id="invBtn" class="pill" type="button">Inventar <kbd>I</kbd></button><button id="talBtn" class="pill" type="button">Talente <kbd>K</kbd> <b class="updNew" id="talBadge" hidden>0</b></button></div><button id="updBtn" class="pill" type="button">Updates <b class="updNew" hidden>Neu</b></button></div>
+<div class="hudL"><div class="hearts" id="hearts"></div><div class="stats"><span id="lv"></span><span class="g" id="gold"></span><span class="p" id="pots"></span></div><div class="xpbar"><div id="xpf"></div></div><div class="mpbar"><div id="mpf"></div></div><div id="mpTxt"></div><div id="region"></div><div id="clock"></div><div id="wpTxt" hidden></div><button id="online" type="button"><i></i><span id="onlineN">Verbinde …</span></button><div class="pills"><button id="mapBtn" class="pill" type="button">Karte <kbd>M</kbd></button><button id="invBtn" class="pill" type="button">Inventar <kbd>I</kbd></button><button id="talBtn" class="pill" type="button">Skills <kbd>K</kbd> <b class="updNew" id="talBadge" hidden>0</b></button></div><button id="updBtn" class="pill" type="button">Updates <b class="updNew" hidden>Neu</b></button></div>
 <div class="panel" id="updP" hidden><div class="box"><h2>Spiel-Log</h2><p style="margin:0 0 6px;font-size:14px;opacity:.8">Alle Updates von „Der Fluch der Sonnenfratze“, das Neueste zuerst.</p><div id="updL"></div><div class="row"><button class="btn" id="updX">Schließen</button></div></div></div>
 <div id="chatLog" aria-live="polite"></div><div id="hotbar"></div>
 <div class="panel" id="mapP" hidden><div class="box wide mapbox"><div class="maphead"><h2>Weltkarte</h2><span id="mapInfo"></span></div><div class="mapwrap"><canvas id="bigmap"></canvas><div id="mapTip" hidden></div></div><p class="maphelp">Ziehen verschiebt, Mausrad zoomt. Klick setzt einen Wegpunkt, Klick auf den Wegpunkt löscht ihn. Klick auf einen entdeckten Sonnenschrein (orange Sterne) reist sofort dorthin.</p><div class="row"><button class="btn" id="mapZout">−</button><button class="btn" id="mapZin">+</button><button class="btn" id="mapCenter">Zu mir</button><button class="btn" id="mapClear">Wegpunkt löschen</button><button class="btn" id="mapX">Schließen</button></div></div></div>
 <div class="panel" id="invP" hidden><div class="box wide"><h2>Ausrüstung &amp; Tasche</h2><div id="invL"></div><div class="row"><button class="btn" id="invX">Schließen</button></div></div></div>
 <div class="panel" id="clsP" hidden><div class="box wide"><h2>Klasse wechseln</h2><div id="clsPL"></div><div class="row"><button class="btn" id="clsPX">Schließen</button></div></div></div>
-<div class="panel" id="talP" hidden><div class="box wide"><h2>Talente</h2><div id="talL"></div><div class="row"><button class="btn" id="talX">Schließen</button></div></div></div>
+<div class="panel" id="talP" hidden><div class="box wide"><h2>Skilltree</h2><div id="talL"></div><div class="row"><button class="btn" id="talX">Schließen</button></div></div></div>
 <form id="chatF" hidden><input id="chatI" maxlength="120" autocomplete="off" placeholder="Nachricht an alle in der Welt … (Enter senden, Esc abbrechen)"></form>
 <div class="panel" id="plP" hidden><div class="box"><h2>Wer ist in der Welt?</h2><div id="plL"></div><div class="row"><button class="btn" id="plX">Schließen</button></div></div></div>
 <div class="hudR"><canvas id="map" width="150" height="150"></canvas><div id="track"></div></div>
@@ -118,7 +130,7 @@ button.big:hover,button.big:focus-visible{background:#ff5a2e;outline:2px solid v
 <div class="panel" id="logP" hidden><div class="box"><h2>Questbuch</h2><div id="logL"></div><div class="row"><button class="btn" id="logX">Schließen</button></div></div></div>
 <div class="panel" id="shopP" hidden><div class="box"><h2>Wilmas Wunderkram</h2><div id="shopL"></div><div class="row"><button class="btn" id="shopX">Tschüss, Wilma</button></div></div></div>
 <div id="touch" hidden><div id="stick"><div id="knob"></div></div><div class="tb" id="bAct">E</div><div class="tb" id="bJump">Sprung</div><div class="tb" id="bShoot">Zauber</div><div class="tb" id="bPot">Trank</div><div class="tb" id="bLog">Quests</div><div class="tb" id="bChat">Chat</div><div class="tb sp" id="bFire">Feuer</div><div class="tb sp" id="bFrost">Frost</div><div class="tb sp" id="bShield">Schild</div><div class="tb" id="bEmote">Geste</div><div class="tb sp" id="bBroom">Besen</div></div>
-<div id="flash"></div><div id="toast"></div>
+<div id="flash"></div><div id="toast"></div><div id="voteB" hidden><span id="voteTxt"></span><button class="btn" id="voteY" type="button">Ja</button><button class="btn" id="voteN" type="button">Nein</button></div>
 <div class="screen" id="title">
   <h1>Der Fluch der<br>Sonnenfratze</h1>
   <p>Eine riesige offene Welt zwischen Fiebertraum und Finsternis. Über der großen Stadt Schiefstadt sitzt die Sonne mit Gesicht und goldenen Beinen auf einem Dach und schläft. Drachenkönig Zorgrimm hat ihre Träume über das ganze Land verstreut. Du bist Fennick Sternenhut, Zauberlehrling.</p>
@@ -126,7 +138,7 @@ button.big:hover,button.big:focus-visible{background:#ff5a2e;outline:2px solid v
   <div class="row" style="justify-content:center"><button class="big alt" id="contBtn" hidden>Weiterspielen</button><button class="big" id="startBtn">Neues Spiel</button></div>
   <button class="pill" id="updTitle" type="button"><span id="verTag">Version</span> · Was ist neu? <b class="updNew" hidden>Neu</b></button>
 </div>
-<div class="screen" id="clsS" hidden><h1 style="font-size:clamp(28px,5vw,46px)">Wähle deine Klasse</h1><p>Fennick hat die Zauberschule gerade abgeschlossen. Welchen Weg hat er gewählt?</p><div id="clsL"></div><p id="clsWarn" hidden style="font-size:14px;color:#ffb0a0">Achtung: Ein neues Spiel überschreibt deinen alten Spielstand.</p><button class="pill" id="clsBack" type="button">Zurück</button></div>
+<div class="screen" id="clsS" hidden><h1 style="font-size:clamp(28px,5vw,46px)">Wähle deine Klasse</h1><p>Fennick hat die Zauberschule gerade abgeschlossen. Welchen Weg hat er gewählt?</p><input id="nameI" maxlength="20" placeholder="Dein Name (optional, für Mitspieler)" aria-label="Dein Name"><div id="clsL"></div><p id="clsWarn" hidden style="font-size:14px;color:#ffb0a0">Achtung: Ein neues Spiel überschreibt deinen alten Spielstand.</p><button class="pill" id="clsBack" type="button">Zurück</button></div>
 <div class="screen" id="end" hidden><h1>Die Sonne lächelt</h1><p>Alle Träume sind heimgekehrt. Sol Glutbart streckt die goldenen Beine und spaziert lachend über den Himmel. Das Blutrot verblasst, Knorz traut sich aus dem Pilz, und Sir Morwen hängt sein Schwert an den Nagel. Die Welt gehört dir: Erkunde sie weiter, erledige offene Aufträge, oder ruh dich am Brunnen aus.</p><button class="big" id="freeBtn">Weiter erkunden</button></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -807,7 +819,13 @@ function renderShop(){$('shopL').innerHTML=`<p style="margin:0 0 6px">Dein Gold:
   $('shopL').querySelectorAll('button').forEach(b=>b.onclick=()=>{const s=SHOP.find(x=>x.id===b.dataset.id);if(player.gold>=s.p()&&s.ok()){player.gold-=s.p();s.buy();beep(1000,.12,'triangle');updHUD();save();renderShop();}});}
 $('shopX').onclick=()=>{$('shopP').hidden=true;state='play';};
 function toggleLog(){if(state==='menu'&&!$('logP').hidden){$('logP').hidden=true;state='play';return;}if(state!=='play')return;state='menu';
-  $('logL').innerHTML=questList().map(q=>`<div class="q ${q.done?'done':''}"><h3>${q.t}<span class="tag">${q.tag}</span></h3><p>${q.done?'Erledigt.':q.d}</p></div>`).join('')+`<p style="font-size:13px;opacity:.75;margin-top:10px">Stufe ${player.lv} · Zauberschaden ${player.dmg} · ${player.maxHp} Herzen · Erkundet: ${Object.keys(seen).length}/${REG.length} Regionen</p>`;$('logP').hidden=false;}
+  renderLog();$('logP').hidden=false;}
+function renderLog(){const tq=trackedQ(),qs=questList();
+  $('logL').innerHTML=`<p class="qhint">${tq?`Du verfolgst: <b>${tq.t}</b>. Nur deren Ziele erscheinen auf Karte und Minikarte.`:'Du verfolgst alle Quests. Wähle eine aus, damit nur ihre Ziele auf der Karte erscheinen.'}</p>`+
+    qs.map((q,i)=>`<div class="q ${q.done?'done':''}${tq&&tq.t===q.t?' trk':''}"><h3>${tq&&tq.t===q.t?'◎ ':''}${q.t}<span class="tag">${q.tag}</span></h3><p>${q.done?'Erledigt.':q.d}</p>${q.done?'':`<button class="btn qtb" type="button" data-i="${i}">${tq&&tq.t===q.t?'Nicht mehr verfolgen':'Verfolgen'}</button>`}</div>`).join('')+
+    `<p style="font-size:13px;opacity:.75;margin-top:10px">Stufe ${player.lv} · Zauberschaden ${player.dmg} · ${player.maxHp} Herzen · Erkundet: ${Object.keys(seen).length}/${REG.length} Regionen</p>`;
+  $('logL').querySelectorAll('.qtb').forEach(b=>b.onclick=()=>{const q=qs[+b.dataset.i];F.trk=F.trk===q.t?null:q.t;beep(880,.1,'triangle');feed(F.trk?`Verfolge: ${q.t}`:'Verfolge alle Quests','#ffd23a');save();updHUD();drawMap();renderLog();});}
+function trackedQ(){if(!F||!F.trk)return null;const q=questList().find(q=>q.t===F.trk);if(!q||q.done){F.trk=null;return null;}return q;}
 $('logX').onclick=()=>toggleLog();
 const seen={};
 
@@ -864,7 +882,8 @@ function buildAll(){world.traverse(o=>{if(o.geometry&&!SHARED.has(o.geometry))o.
 /* ---------- HUD ---------- */
 function updHUD(){$('hearts').textContent='♥'.repeat(Math.max(0,player.hp))+'♡'.repeat(Math.max(0,player.maxHp-player.hp));
   $('lv').textContent='Stufe '+player.lv;$('gold').textContent=player.gold+' Gold';$('pots').textContent=player.pots+' Tränke';$('xpf').style.width=Math.min(100,player.xp/(25*player.lv)*100)+'%';
-  const side=questList().slice(1).find(q=>!q.done);$('track').innerHTML=`<b>Die Träume der Sonne</b>${mainObj()}`+(side?`<b style="margin-top:6px">${side.t}</b>${side.d}`:'');
+  const tq=trackedQ(),tMain=tq&&tq.tag==='Hauptquest',side=tq?(tMain?null:tq):questList().slice(1).find(q=>!q.done);
+  $('track').innerHTML=`<b>${tMain?'◎ ':''}Die Träume der Sonne</b>${mainObj()}`+(side?`<b style="margin-top:6px">${tq?'◎ ':''}${side.t}</b>${side.d}`:'');
   if(activeBoss)$('bossFill').style.width=Math.max(0,activeBoss.hp/activeBoss.max*100)+'%';}
 function feed(t,c){const d=document.createElement('div');d.textContent=t;d.style.color=c||'#fff';$('feed').appendChild(d);setTimeout(()=>d.remove(),2200);while($('feed').children.length>5)$('feed').firstChild.remove();}
 function addXp(n){const gb=groupBonus();if(gb>1)n=Math.round(n*gb);player.xp+=n;feed(`+${n} EP`+(gb>1?' (Gruppe)':''),'#c89aff');while(player.xp>=25*player.lv){player.xp-=25*player.lv;player.lv++;player.maxHp=Math.min(14+CL().hp-5+RPG.bonusHp,player.maxHp+1);player.hp=player.maxHp;if(player.lv%3===0)player.dmg++;
@@ -891,12 +910,20 @@ function drawMapBg(){mapBg=document.createElement('canvas');mapBg.width=mapBg.he
   g.fillStyle='rgba(110,70,80,.85)';for(const h of MAPH)g.fillRect(tp(h[0])-.9,tp(h[1])-.9,1.8,1.8);
   g.strokeStyle='#3a3048';g.lineWidth=2;g.beginPath();g.arc(tp(0),tp(0),272/MBS,0,7);g.stroke();
   g.fillStyle='#1a1018';g.fillRect(tp(-270),tp(1196),540/MBS,2);g.fillRect(tp(-270),tp(1196),2,250/MBS);g.fillRect(tp(268),tp(1196),2,250/MBS);g.fillRect(tp(-270),tp(1440),540/MBS,2);}
+/* Quest-Abzeichen für NPCs auf den Karten: ! neuer Auftrag, ? abgeben */
+function qBadge(c,a,b,ch,k,s){c.save();c.fillStyle=ch==='?'?'#7dffea':'#ffd23a';c.strokeStyle='#2a1000';c.lineWidth=2*s;c.beginPath();c.arc(a,b,k,0,7);c.fill();c.stroke();
+  c.fillStyle='#2a1000';c.font=`bold ${Math.round(k*1.5)}px Georgia`;c.textAlign='center';c.textBaseline='middle';c.fillText(ch,a,b+k*.08);c.restore();}
+/* Pfeil für Mitspieler auf den Karten: Klassenfarbe, weißer Rand, zeigt die Blickrichtung */
+function plArrow(c,a,b,rot,col,k,lw){c.save();c.translate(a,b);c.fillStyle='rgba(255,255,255,.25)';c.beginPath();c.arc(0,0,k*1.5,0,7);c.fill();c.rotate(-(rot||0)+PI);c.fillStyle=col;c.strokeStyle='#fff';c.lineWidth=lw;
+  c.beginPath();c.moveTo(0,-k);c.lineTo(k*.75,k*.85);c.lineTo(0,k*.4);c.lineTo(-k*.75,k*.85);c.closePath();c.fill();c.stroke();c.restore();}
 function drawMap(){const W=150,s=.5;mctx.clearRect(0,0,W,W);mctx.save();mctx.beginPath();mctx.arc(75,75,75,0,7);mctx.clip();mctx.imageSmoothingEnabled=false;
   mctx.fillStyle='#000';mctx.fillRect(0,0,W,W);const sw=150/s/MBS;mctx.drawImage(mapBg,(player.pos.x+1500)/MBS-sw/2,(player.pos.z+1500)/MBS-sw/2,sw,sw,0,0,150,150);
   const toM=(x,z)=>[75+(x-player.pos.x)*s,75+(z-player.pos.z)*s];
-  for(const m of markers){if(!m.ch)continue;const[a,b]=toM(m.g.position.x,m.g.position.z);mctx.fillStyle=m.ch==='?'?'#7dffea':'#ffd23a';mctx.font='bold 13px Georgia';mctx.fillText(m.ch,Math.max(4,Math.min(140,a-3)),Math.max(12,Math.min(146,b+4)));}
+  for(const m of markers){if(!m.ch)continue;let[a,b]=toM(m.g.position.x,m.g.position.z);const dx=a-75,dy=b-75,d=Math.hypot(dx,dy);if(d>66){a=75+dx/d*66;b=75+dy/d*66;}qBadge(mctx,a,b,m.ch,6.5,1);}
   for(const[x,z]of questTargets()){let[a,b]=toM(x,z);const dx=a-75,dy=b-75,d=Math.hypot(dx,dy);if(d>66){a=75+dx/d*66;b=75+dy/d*66;}mctx.fillStyle='#ffd23a';mctx.strokeStyle='#3a1a00';mctx.lineWidth=2;mctx.beginPath();mctx.arc(a,b,4,0,7);mctx.fill();mctx.stroke();}
-  for(const r of remotes.values()){let[a,b]=toM(r.tp.x,r.tp.z);const dx=a-75,dy=b-75,d=Math.hypot(dx,dy);if(d>68){a=75+dx/d*68;b=75+dy/d*68;}mctx.fillStyle='#'+new THREE.Color().setHSL(r.hue,.9,.65).getHexString();mctx.strokeStyle='#fff';mctx.lineWidth=1.5;mctx.beginPath();mctx.arc(a,b,4,0,7);mctx.fill();mctx.stroke();}
+  for(const r of remotes.values()){let[a,b]=toM(r.tp.x,r.tp.z);const dx=a-75,dy=b-75,d=Math.hypot(dx,dy),col=(CLS[r.cl]||CLS.magier).c;
+    if(d>64){a=75+dx/d*64;b=75+dy/d*64;mctx.save();mctx.translate(a,b);mctx.rotate(Math.atan2(dy,dx)+PI/2);mctx.fillStyle=col;mctx.strokeStyle='#fff';mctx.lineWidth=1.5;mctx.beginPath();mctx.moveTo(0,-7);mctx.lineTo(5,3);mctx.lineTo(-5,3);mctx.closePath();mctx.fill();mctx.stroke();mctx.restore();continue;}
+    plArrow(mctx,a,b,r.rot,col,6,1.5);}
   mctx.translate(75,75);mctx.rotate(-player.rot+PI);mctx.fillStyle='#5ff3ff';mctx.strokeStyle='#000';mctx.beginPath();mctx.moveTo(0,-7);mctx.lineTo(5,6);mctx.lineTo(-5,6);mctx.closePath();mctx.fill();mctx.stroke();mctx.restore();
   mctx.fillStyle='#ffc83d';mctx.font='bold 11px Georgia';mctx.fillText('N',71,12);}
 
@@ -947,8 +974,8 @@ if(touchMode){const st=$('stick'),kn=$('knob');
 function jump(){if(state==='play'&&player.onGround){player.vy=12.5;player.onGround=false;beep(520,.1,'triangle');}}
 function act(){if(state==='play'&&curInter)curInter.fn();}
 function potion(){if(state!=='play')return;if(player.pots<=0){toast('Keine Tränke mehr. Wilma verkauft welche.');return;}if(player.hp>=player.maxHp){toast('Du bist schon gesund');return;}
-  player.pots--;player.hp=Math.min(player.maxHp,player.hp+3);flash('#ff7ab0',.3);beep(700,.25,'sine',.07);updHUD();}
-function shoot(){if(state!=='play'||player.cool>0)return;player.cool=CL().cool||.26;
+  player.pots--;player.hp=Math.min(player.maxHp,player.hp+3+tal("quell"));flash('#ff7ab0',.3);beep(700,.25,'sine',.07);updHUD();}
+function shoot(){if(state!=='play'||player.cool>0)return;player.cool=(CL().cool||.26)*(1-.12*tal("komet"));
   const dir=new THREE.Vector3(Math.sin(player.rot),0,Math.cos(player.rot));const from=player.pos.clone();from.y+=1.8;
   let best=null,bd=42;for(const e of enemies){if(e.hp<=0||e.noAim)continue;const tp=e.g.position.clone();tp.y+=e.hitY;const v=tp.sub(from);const d=v.length();if(d<bd&&v.clone().setY(0).normalize().dot(dir)>.8){bd=d;best=v.normalize();}}
   if(best)dir.copy(best);const m=new THREE.Group();m.position.copy(from).addScaledVector(dir,.8);m.add(glow(CL().orb,1.8+player.dmg*.3));P(G.sph,basic(0xffffff),m,0,0,0,.22);world.add(m);
@@ -1111,7 +1138,8 @@ function classAcc(cls){const a=new THREE.Group();
 function openClassPick(){const L=$('clsL');L.textContent='';for(const[id,c]of Object.entries(CLS)){const b=document.createElement('button');b.className='clsC';b.type='button';b.style.setProperty('--c',c.c);
     const h=document.createElement('b');h.textContent=c.ic+' '+c.n;const d=document.createElement('p');d.textContent=c.d;const ul=document.createElement('ul');
     for(const t of c.pro){const li=document.createElement('li');li.textContent=t;ul.appendChild(li);}const li=document.createElement('li');li.className='con';li.textContent=c.con;ul.appendChild(li);
-    b.append(h,d,ul);b.onclick=()=>startGame(false,id);L.appendChild(b);}
+    b.append(h,d,ul);b.onclick=()=>{setCustomName($('nameI').value);startGame(false,id);};L.appendChild(b);}
+  $('nameI').value=customName();
   $('clsWarn').hidden=!loadSave();$('title').hidden=true;$('clsS').hidden=false;}
 /* Klassenwechsel: alle 10 Stufen kostenlos, sonst für Gold. Die Stufe bleibt. */
 const clsCost=()=>150+20*player.lv,clsFree=()=>Math.max(0,Math.floor(player.lv/10)-(F.cfu|0));
@@ -1131,6 +1159,7 @@ function renderCls(){const L=$('clsPL');L.textContent='';const fr=clsFree(),cost
     d.append(h,ds,ul,b);g.appendChild(d);}L.appendChild(g);}
 $('clsPX').onclick=()=>closeMenu('clsP');
 addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='Escape'&&!$('clsP').hidden)closeMenu('clsP');else if(e.code==='KeyO'&&(state==='play'||!$('clsP').hidden))openMenu('clsP',renderCls);});
+for(const ev of['keydown','keyup'])$('nameI').addEventListener(ev,e=>e.stopPropagation());
 $('clsBack').onclick=()=>{$('clsS').hidden=true;$('title').hidden=false;};
 $('startBtn').onclick=openClassPick;$('contBtn').onclick=()=>startGame(true);$('freeBtn').onclick=()=>{$('end').hidden=true;state='play';};
 if(loadSave())$('contBtn').hidden=false;
@@ -1385,9 +1414,9 @@ function heroMesh(hue){const g=new THREE.Group();const robe=lam({map:T.robe(1),c
 function newRemote(p,pr){const hue=isFinite(+pr.h)?+pr.h:.5;const g=heroMesh(hue);const tag=newSprite(4.4,5,1.25);g.add(tag);const bub=newSprite(5.6,7,2.2);bub.visible=false;g.add(bub);
   const cl=isCls(pr.cl)?pr.cl:'magier';dressHero(g,g.userData.refs,cl);
   const r={g,tag,bub,hue,cl,tp:new THREE.Vector3(pr.p[0],pr.p[1],pr.p[2]),rot:pr.p[3],name:'Zauberer',lv:1,rg:'',sayT:pr.say&&pr.say.t,shN:pr.sh&&pr.sh.n,emT:pr.em&&pr.em.t,em:null,bubT:0,guest:p.guest};
-  g.position.copy(r.tp);if(room&&room.fb){const nm=clean(pr.nm).slice(0,20);if(nm)r.name=nm;}setTag(r);
+  g.position.copy(r.tp);{const nm=clean(pr.nm).slice(0,20);if(nm)r.name=nm;}setTag(r);
   const done=()=>{setTag(r);addChat(null,`${r.name} betritt die Welt als ${CLS[r.cl].n}`);};
-  if(p.by&&userCap&&userCap.profiles){userCap.profiles([p.by]).then(ps=>{const n=ps&&ps[p.by]&&ps[p.by].name;if(n)r.name=clean(n).slice(0,24)||'Zauberer';done();}).catch(done);}else done();return r;}
+  if(p.by&&userCap&&userCap.profiles){userCap.profiles([p.by]).then(ps=>{const n=ps&&ps[p.by]&&ps[p.by].name;if(n){r.prof=clean(n).slice(0,24);if(!clean(pr.nm))r.name=r.prof||'Zauberer';}done();}).catch(done);}else done();return r;}
 function setTag(r){setSpriteTex(r.tag,textTex(`${(CLS[r.cl]||CLS.magier).ic} ${r.name} · St. ${r.lv}`+(r.hp!==undefined?` · ♥${r.hp}`:''),320,80,'bold 30px Georgia','#'+new THREE.Color().setHSL(r.hue,.8,.75).getHexString()));r.tagLv=r.lv;}
 function setBubble(spr,msg){setSpriteTex(spr,textTex(msg,420,132,'bold 26px Georgia','#1a0a2a','rgba(255,248,230,.95)'));spr.visible=true;}
 
@@ -1411,17 +1440,20 @@ addEventListener('keydown',e=>{if(state!=='play'||e.repeat)return;if(e.code==='E
 function updOnline(){const n=remotes.size+1;$('onlineN').textContent=room?(n>1?`${n} online`:'Nur du online'):'Einzelspieler';$('online').classList.toggle('live',!!room&&n>1);}
 function openPlayers(){if(state!=='play')return;state='menu';const L=$('plL');L.textContent='';
   const row=(name,info,btn)=>{const d=document.createElement('div');d.className='shop';const a=document.createElement('div');const b=document.createElement('b');b.textContent=name;const p=document.createElement('p');p.textContent=info;a.append(b,p);d.appendChild(a);if(btn)d.appendChild(btn);L.appendChild(d);};
-  row(room&&room.fb?'Du ('+myName()+')':'Du',`${CL().ic} ${CL().n} · Stufe ${player.lv} · ${curReg||'Unterwegs'}`);
-  if(room&&room.fb){const f=document.createElement('form');f.className='shop';const i=document.createElement('input');i.maxLength=20;i.placeholder='Dein Name';i.value=myName();i.style.cssText='flex:1;font:16px var(--body);padding:6px 8px;border-radius:3px;border:1px solid var(--gold);background:#120828;color:var(--paper)';
+  row('Du'+((customName()||(room&&room.fb))?' ('+myName()+')':''),`${CL().ic} ${CL().n} · Stufe ${player.lv} · ${curReg||'Unterwegs'}`);
+  {const f=document.createElement('form');f.className='shop';const i=document.createElement('input');i.maxLength=20;i.placeholder='Dein Name (für alle sichtbar)';i.value=customName();i.style.cssText='flex:1;font:16px var(--body);padding:6px 8px;border-radius:3px;border:1px solid var(--gold);background:#120828;color:var(--paper)';
     i.addEventListener('keydown',e=>e.stopPropagation());i.addEventListener('keyup',e=>e.stopPropagation());const b=document.createElement('button');b.className='btn';b.textContent='Name speichern';
-    f.append(i,b);f.onsubmit=e=>{e.preventDefault();const n=clean(i.value).slice(0,20);try{localStorage.setItem('sf-name',n);}catch(_){}toast(n?`Du heißt jetzt ${n}`:'Name zurückgesetzt');openPlayers.re();};L.appendChild(f);}
+    f.append(i,b);f.onsubmit=e=>{e.preventDefault();const n=setCustomName(i.value);toast(n?`Du heißt jetzt ${n}`:'Name zurückgesetzt');openPlayers.re();};L.appendChild(f);}
+  {const vb=document.createElement('button');vb.className='btn';vb.style.margin='6px 0';vb.textContent=isNightNow()?'☀️ Abstimmung starten: Tag machen':'🌙 Abstimmung starten: Nacht machen';vb.onclick=()=>{$('plP').hidden=true;state='play';startVote();};L.appendChild(vb);}
   if(!room){const p=document.createElement('p');p.textContent=window.claude?'Mehrspieler ist hier nicht verbunden. Öffne das Spiel auf claude.ai, angemeldet, damit andere dich sehen.':'Mehrspieler ist in dieser Datei nicht eingerichtet (keine Firebase-Adresse). Du spielst allein.';L.appendChild(p);}
   else if(!remotes.size){const p=document.createElement('p');p.textContent='Noch niemand sonst hier. Teile den Link über das Teilen-Menü, dann seht ihr euch in der Welt.';L.appendChild(p);}
   for(const r of remotes.values()){const d=Math.round(Math.hypot(r.tp.x-player.pos.x,r.tp.z-player.pos.z));const b=document.createElement('button');b.className='btn';b.textContent='Hinreisen';
-    b.onclick=()=>{const a=R(0,TAU);let x=r.tp.x+Math.sin(a)*3,z=r.tp.z+Math.cos(a)*3;if(!isFinite(H(x,z))){x=r.tp.x;z=r.tp.z;}if(!isFinite(H(x,z)))return;player.pos.set(x,H(x,z),z);player.vy=0;flash('#b070ff',.7);beep(700,.3,'sine');$('plP').hidden=true;state='play';};
-    row(r.name+(r.guest?' (Gast)':''),`${CLS[r.cl].ic} ${CLS[r.cl].n} · Stufe ${r.lv} ·${r.rg||'Unterwegs'} · ${d} m entfernt`,b);}
+    b.onclick=()=>travelTo(r);
+    row(r.name+(r.prof&&r.prof!==r.name?' ('+r.prof+')':'')+(r.guest?' (Gast)':''),`${CLS[r.cl].ic} ${CLS[r.cl].n} · Stufe ${r.lv} ·${r.rg||'Unterwegs'} · ${d} m entfernt`,b);}
   $('plP').hidden=false;}
 openPlayers.re=()=>{state='play';openPlayers();};
+function travelTo(r){if(!r)return;if(activeBoss){toast('Nicht mitten im Bosskampf');return;}const a=R(0,TAU);let x=r.tp.x+Math.sin(a)*3,z=r.tp.z+Math.cos(a)*3;if(!isFinite(H(x,z))){x=r.tp.x;z=r.tp.z;}if(!isFinite(H(x,z)))return;
+  player.pos.set(x,H(x,z),z);constrain(player.pos);player.vy=0;flash('#b070ff',.7);beep(700,.3,'sine');$('plP').hidden=true;if(mapOpen)closeMap();state='play';toast(`Zu ${r.name} gereist`);}
 $('online').onclick=()=>openPlayers();$('plX').onclick=()=>{$('plP').hidden=true;state='play';};
 function groupBonus(){for(const r of remotes.values())if(Math.hypot(r.tp.x-player.pos.x,r.tp.z-player.pos.z)<35)return 1.25;return 1;}
 let bhN=0,lastBH=null,healMsg=null,healCd=0;
@@ -1430,7 +1462,7 @@ function coopDamage(e,d,from){if(e.hp<=0||e.shield)return false;e.hp-=d;e.pop=.1
   if(e.hp<=0){if(!e.keep)world.remove(e.g);beep(600,.25,'triangle',.06);rollLoot(e,c.clone());
     if(e.type!=='static'&&!e.noXp){addXp(e.xp||XPT[e.type]||5);F.kills++;if(F.bo===1)F.boN++;if(e.type==='bat'&&F.bat===1)F.batN++;if(from)feed(`Zusammen mit ${from} besiegt`,'#7dffea');}
     if(e===activeBoss){activeBoss=null;$('boss').hidden=true;}e.onDie&&e.onDie(e);}updHUD();return true;}
-function castHeal(){if(state!=='play')return;if(time<healCd){toast(`Heilzauber lädt noch (${Math.ceil(healCd-time)} s)`);return;}healCd=time+(CL().heal||20);healMsg={t:Date.now()};
+function castHeal(){if(state!=='play')return;if(time<healCd){toast(`Heilzauber lädt noch (${Math.ceil(healCd-time)} s)`);return;}healCd=time+(CL().heal||20)*(tal("wald")?.5:1);healMsg={t:Date.now()};
   burst(hero.position.clone().setY(hero.position.y+2),0x5aff8a);beep(990,.3,'sine',.06);const n=[...remotes.values()].filter(r=>Math.hypot(r.tp.x-player.pos.x,r.tp.z-player.pos.z)<14).length;
   feed(n?`Heilzauber auf ${n} Freund${n>1?'e':''}`:'Heilzauber verpufft. Niemand in der Nähe.','#5aff8a');}
 addEventListener('keydown',e=>{if(state==='play'&&!e.repeat&&e.code==='KeyG')castHeal();});
@@ -1438,7 +1470,7 @@ function mpShot(pos,dir){shotN++;const d=dir.clone().normalize();lastShot={n:sho
 
 /* Tag & Nacht, Regen: aus der Uhrzeit berechnet, damit alle dasselbe Wetter sehen */
 const DAYLEN=720;let rainPts=null,rainAmt=0;const _dusk=new THREE.Color('#ff7a3a'),_night=new THREE.Color('#0a0820');
-function dayNight(dt){const ph=((Date.now()/1000)%DAYLEN)/DAYLEN,sunH=Math.sin(ph*TAU);const night=smooth(.15,-.25,sunH),dusk=smooth(.4,0,Math.abs(sunH))*(1-night*.6);
+function dayNight(dt){voteT-=dt;if(voteT<0){voteT=.25;voteTick();}const ph=((((Date.now()/1000+dnOfs())%DAYLEN)+DAYLEN)%DAYLEN)/DAYLEN,sunH=Math.sin(ph*TAU);const night=smooth(.15,-.25,sunH),dusk=smooth(.4,0,Math.abs(sunH))*(1-night*.6);
   const s=Date.now()/1000;rainAmt+=((Math.max(0,Math.sin(s/131)*Math.sin(s/71+1)*1.6-.35))-rainAmt)*Math.min(1,dt*.5);const rain=Math.min(1,rainAmt);
   if(skyU){skyU.a.value.lerp(_night,.85*night);skyU.b.value.lerp(_dusk,.3*dusk).lerp(_night,.8*night);skyU.c.value.lerp(_dusk,.55*dusk).lerp(_night,.7*night);
     const gr=.35*rain;skyU.a.value.multiplyScalar(1-gr);skyU.b.value.multiplyScalar(1-gr);skyU.c.value.multiplyScalar(1-gr*.8);skyU.st.value=Math.max(skyU.st.value,night*(1-rain));skyU.sp.value*=1-.5*rain;}
@@ -1459,12 +1491,12 @@ function mpTick(dt){
       if(Math.hypot(c.x-bp.x,c.y+e.hitY-bp.y,c.z-bp.z)<e.r+.5){if(e.shield)burst(bp.clone(),0xffd040);else coopDamage(e,b.dm,b.from);b.life=0;break;}}
     const gy=H(bp.x,bp.z);if(isFinite(gy)&&bp.y<gy)b.life=0;if(b.life<=0){scene.remove(b.m);remoteBolts.splice(i,1);}}
   if(!room)return;
-  if(state!=='title'){mpT-=dt;if(mpT<0){mpT=.1;const p=player.pos;room.presence({p:[+p.x.toFixed(2),+p.y.toFixed(2),+p.z.toFixed(2),+player.rot.toFixed(2)],h:+myHue.toFixed(3),cl:player.cls,lv:player.lv,hp:player.hp,dm:player.dmg,rg:curReg,em:emote,say:sayMsg,sh:lastShot,bh:lastBH,heal:healMsg}).catch(()=>{});}}
+  if(state!=='title'){mpT-=dt;if(mpT<0){mpT=.1;const p=player.pos;room.presence({p:[+p.x.toFixed(2),+p.y.toFixed(2),+p.z.toFixed(2),+player.rot.toFixed(2)],h:+myHue.toFixed(3),cl:player.cls,nm:customName(),dn:DN.s?DN:undefined,vote:okVote(myVote)?myVote:undefined,bal:myBal||undefined,lv:player.lv,hp:player.hp,dm:player.dmg,rg:curReg,em:emote,say:sayMsg,sh:lastShot,bh:lastBH,heal:healMsg}).catch(()=>{});}}
   const seenP=new Set();
   for(const p of room.peers()){if(p.isMe&&p.sameTab)continue;const pr=p.presence||{};const q=pr.p;if(!Array.isArray(q)||q.length<4||!q.every(Number.isFinite))continue;seenP.add(p.peer);
     let r=remotes.get(p.peer);if(!r){r=newRemote(p,pr);remotes.set(p.peer,r);updOnline();}
     r.tp.set(q[0],q[1],q[2]);r.rot=q[3];r.lv=Math.max(1,Math.min(99,pr.lv|0));r.rg=clean(pr.rg).slice(0,40);if(r.lv!==r.tagLv)setTag(r);
-    if(room.fb){const nm=clean(pr.nm).slice(0,20);if(nm&&nm!==r.name){r.name=nm;setTag(r);}}
+    r.pr=pr;{const nm=clean(pr.nm).slice(0,20)||(room.fb?"":r.prof||"");if(nm&&nm!==r.name){r.name=nm;setTag(r);}}
     const cl=isCls(pr.cl)?pr.cl:'magier';if(cl!==r.cl){r.cl=cl;dressHero(r.g,r.g.userData.refs,cl);setTag(r);addChat(null,`${r.name} ist jetzt ${CLS[cl].n}`);}
     if(pr.say&&pr.say.t!==r.sayT){r.sayT=pr.say.t;const m=clean(pr.say.m);if(m){addChat(r.name,m,r.hue);setBubble(r.bub,m);r.bubT=time+7;}}
     if(pr.sh&&pr.sh.n!==r.shN){r.shN=pr.sh.n;const d=pr.sh.d;if(Array.isArray(d)&&d.length===3&&d.every(Number.isFinite)&&Math.hypot(r.tp.x-player.pos.x,r.tp.z-player.pos.z)<120){
@@ -1483,7 +1515,7 @@ if(touchMode){let ek=0;$('bEmote').addEventListener('contextmenu',e=>{e.preventD
 
 /* ================= SPIEL-LOG / UPDATES ================= */
 const CHANGELOG=[
- {v:'1.4',t:'Wähle deinen Weg',d:'24.11.2026',items:['Die Kamera geht nicht mehr durch Häuser, Mauern, Türme und Hügel. Sie rückt automatisch näher an Fennick heran.','Neues Spiel startet jetzt mit einer Klassenwahl: Sternenmagier, Feuerhexer, Sonnenritter, Mooshüter oder Glücksstrolch.','Jede Klasse hat eigene Herzen, Stärken und Schwächen. Manche können ihren Spezialzauber schon ab Stufe 1.','Fennick sieht je nach Klasse anders aus: andere Robenfarbe, eigener Zauberblitz, Schild, Blätterkranz, Umhang oder Flammenhut.','Alte Spielstände spielen als Sternenmagier weiter.','Klasse wechseln mit Taste O (oder im Talentfenster): Auf Stufe 10, 20, 30 … ist ein Wechsel kostenlos, sonst kostet er Gold. Stufe, Talente, Ausrüstung und Quests bleiben erhalten.','Mehrspieler: Andere sehen deine Klasse an Robe, Zubehör, Zauberfarbe und am Symbol über deinem Namen. Auch die Spielerliste zeigt die Klasse.']},
+ {v:'1.4',t:'Wähle deinen Weg',d:'24.11.2026',items:['Neuer Skilltree (K): drei Zweige mit je vier Stufen, Verbindungslinien und neuen Skills wie Glutblut, Inferno, Lebensquell, Rindenhaut, Schildmeister, Sternschnuppe und den Spitzen Sonnenzorn, Ewiger Wald und Kosmos.','Quests verfolgen: Im Questbuch (L) wählst du eine Quest, dann zeigen Karte, Minikarte und die Anzeige oben rechts nur noch ihre Ziele.','NPCs mit Aufträgen stehen auf der großen Karte mit Abzeichen (! neu, ? abgeben) und Namen, auf der Minikarte auch am Rand.','Eigener Name: bei der Klassenwahl oder unter online. Mitspieler sehen ihn über deinem Kopf, auf der Karte und im Chat.','Tag oder Nacht per Abstimmung: Klick auf die Uhr. Stimmt mehr als die Hälfte der Spieler zu, wechselt die Tageszeit für alle.','Karte und Minikarte zeigen Mitspieler als Pfeil in ihrer Klassenfarbe mit Blickrichtung, auf der großen Karte mit Name, Klasse und Stufe. Ein Klick auf einen Mitspieler bringt dich zu ihm. Ist jemand außerhalb der Minikarte, zeigt ein Pfeil am Rand in seine Richtung.','Die Kamera geht nicht mehr durch Häuser, Mauern, Türme und Hügel. Sie rückt automatisch näher an Fennick heran.','Neues Spiel startet jetzt mit einer Klassenwahl: Sternenmagier, Feuerhexer, Sonnenritter, Mooshüter oder Glücksstrolch.','Jede Klasse hat eigene Herzen, Stärken und Schwächen. Manche können ihren Spezialzauber schon ab Stufe 1.','Fennick sieht je nach Klasse anders aus: andere Robenfarbe, eigener Zauberblitz, Schild, Blätterkranz, Umhang oder Flammenhut.','Alte Spielstände spielen als Sternenmagier weiter.','Klasse wechseln mit Taste O (oder im Talentfenster): Auf Stufe 10, 20, 30 … ist ein Wechsel kostenlos, sonst kostet er Gold. Stufe, Talente, Ausrüstung und Quests bleiben erhalten.','Mehrspieler: Andere sehen deine Klasse an Robe, Zubehör, Zauberfarbe und am Symbol über deinem Namen. Auch die Spielerliste zeigt die Klasse.']},
  {v:'1.3',t:'Höfe, Häfen und Halunken',d:'24.11.2026',items:['Sieben neue Quests: Schafe zählen, Goldene Kürbisse, Steckbriefe, Signalfeuer, Das dunkle Leuchtfeuer, Die Glitzermine und Wespenplage.','Vier gesuchte Schurken mit Namen, Lebensbalken und Beute: Räuberhauptmann Grimmbart, Glutkönig Funkenzahn, Sumpfhexer Quaxl und Brummfrost der Eisyeti.','Neue Orte: das Fischerdorf Krötenhafen mit Stegen und Booten, der Glimmerturm (ein Leuchtturm), die Glitzermine, eine Karawanserei, der Gasthof „Zur Krummen Gabel“ und die Uralte Eiche, unter der man rasten kann.','Sieben neue Höfe: Apfelhof mit Obstgarten, Kürbishof, Schäferei mit Weide, Weinberg, Imkerei mit Bienenstöcken, Kuhhof und Knollenhof.','Tiere: Schafe, Kühe und Hühner laufen auf Weiden und durch die Dörfer.','Fünf neue Sonnenschreine für die Schnellreise und 13 neue Orte auf der Weltkarte.']},
  {v:'1.2',t:'Das große Land',d:'24.11.2026',items:['Die ganze Welt ist fünfmal so groß: Alle Regionen, Wege und Orte sind mitgewachsen, mit Hügeln, Bergen, weiten Wäldern und einem breiten Fluss.','Schiefstadt ist jetzt eine echte Großstadt: über tausend schiefe Häuser, Straßenraster, Ringstraße, Stadtmauer mit 16 Türmen und vier Torburgen, Spaziergänger in den Gassen.','Neue Stadtviertel: Kathedrale mit Friedhof, Sternenakademie mit Turm, Arena der Träume, Stadtpark mit Teich und Pavillon, Kornmarkt, dazu Rathaus, Gasthaus und Schmiede am Marktplatz.','Neue Region hinter der Leuchtschlucht im Nordwesten: Die Frostzacken, verschneite Berge mit Frostkobolden, einem Eremiten und Schneefall.','Neue Quests: Post für Schiefstadt (Postbote Pips), Sternsplitter (Astronomin Vega) und die Arena der Träume mit Wellenkämpfen in immer schwereren Runden (Arenameister Brakus).','Reisebesen: bei Besenmacherin Ruthilde am Kornmarkt kaufen, mit B aufsitzen und gut zweieinhalbmal so schnell reisen.','Drei neue Weiler (Krummbach, Wackelfurt, Hinkelhain), mehr Höfe, Ruinen, Lager, Wachtürme, Seen, 80 Truhen und 15 Sonnenschreine für die Schnellreise.','Weltkarte mit stärkerem Zoom: Nah herangezoomt siehst du jedes Haus und jede Gasse der Stadt.','Die Welt wird für alle gleich erzeugt: Mitspieler sehen dieselbe Stadt.','Alte Spielstände laufen weiter, deine Position wird auf die neue Weltgröße umgerechnet.']},
  {v:'1.1',t:'Die Stadt Schiefstadt',d:'22.11.2026',items:['Schiefstadt ist jetzt eine richtige Stadt mit Stadtmauer, Zinnen, acht Rundtürmen und vier Toren mit Wachen.','Straßenraster mit zwei Hauptstraßen und vier Seitenstraßen, gesäumt von dicht gebauten, schiefen Fachwerkhäusern.','Marktplatz mit acht Ständen, Bänken und dem Sonnenbrunnen.','Neue Gebäude: Rathaus mit Uhrturm, Kirche mit Rosettenfenster, Gasthaus „Zum Schiefen Krug“, Schmiede mit glühender Esse.','Hinterhöfe mit Bäumen, Gemüsebeeten und Brunnen, Fässer und Kisten vor den Häusern, bunte Wimpelketten über den Straßen.','Neue Figuren: Bürgermeister Quirin, Priesterin Lumina, Schmiedin Brunhild, Stadtwachen an jedem Tor. Bodo steht jetzt vor dem Gasthaus, Gerd am Nordtor.']},
@@ -1521,17 +1553,37 @@ const AFF={dmg:{n:'Schaden',p:'Glühend',f:t=>1+Math.floor(t/2),u:''},krit:{n:'K
   def:{n:'Blocken',p:'Eisern',f:t=>4+t*2,u:'%'},gold:{n:'Gold',p:'Glücklich',f:t=>8+t*4,u:'%'},regen:{n:'Manaregeneration',p:'Sprudelnd',f:t=>10+t*5,u:'%'},spd:{n:'Tempo',p:'Flink',f:t=>3+t*2,u:'%'}};
 const LEG={stab:['Der Krumme Sonnenstab','Glibbs Blitzangel'],hut:['Sols Schlafmütze','Der Hut, der endlich passt'],robe:['Robe der Schiefen Stadt','Knorz’ Zitterrobe'],amu:['Mietzes Glöckchen','Amulett des Ewigen Morgens']};
 const TALENTS=[
- {school:'Feuer',c:'#ff7a3a',list:[{id:'glut',n:'Glutkern',max:3,d:r=>`+${15*r}% Zauberschaden`},{id:'krit',n:'Funkenflug',max:3,d:r=>`+${8*r}% Krit-Chance`},{id:'feuer',n:'Feuersturm',max:2,d:r=>`Feuerball: +${1.5*r} m Radius, +${r} Schaden`}]},
- {school:'Natur',c:'#5aff8a',list:[{id:'zaeh',n:'Zähigkeit',max:3,d:r=>`+${r} Herz${r>1?'en':''}`},{id:'regen',n:'Mondtau',max:2,d:r=>r?`Alle ${30-8*r} s ein Herz zurück`:'Herzen regenerieren sich langsam'},{id:'frost',n:'Eisherz',max:2,d:r=>`Frostring: +${3*r} m Radius, +${2*r} s Verlangsamung`}]},
- {school:'Sterne',c:'#7ad0ff',list:[{id:'mana',n:'Sternenquell',max:3,d:r=>`+${4*r} Mana, +${25*r}% Manaregeneration`},{id:'eile',n:'Kometenschritt',max:2,d:r=>`+${8*r}% Lauftempo`},{id:'gold',n:'Glückshut',max:2,d:r=>`+${15*r}% Gold und Beute`}]}];
+ {school:'Feuer',c:'#ff7a3a',nodes:[
+  {id:'glut',ic:'🔥',n:'Glutkern',max:3,t:1,x:50,req:[],d:r=>`+${15*r}% Zauberschaden`},
+  {id:'krit',ic:'✨',n:'Funkenflug',max:3,t:2,x:24,req:['glut'],d:r=>`+${8*r}% Krit-Chance`},
+  {id:'feuer',ic:'💥',n:'Feuersturm',max:2,t:2,x:76,req:['glut'],d:r=>`Feuerball: +${1.5*r} m Radius, +${r} Schaden`},
+  {id:'brand',ic:'🩸',n:'Glutblut',max:2,t:3,x:24,req:['krit'],d:r=>`+${r} Grundschaden für alle Zauber`},
+  {id:'inferno',ic:'☄️',n:'Inferno',max:2,t:3,x:76,req:['feuer'],d:r=>`Feuerball lädt ${20*r}% schneller`},
+  {id:'zorn',ic:'☀️',n:'Sonnenzorn',max:1,t:4,x:50,req:['brand','inferno'],d:()=>`+25% Zauberschaden und +10% Krit-Chance`}]},
+ {school:'Natur',c:'#5aff8a',nodes:[
+  {id:'zaeh',ic:'💚',n:'Zähigkeit',max:3,t:1,x:50,req:[],d:r=>`+${r} Herz${r>1?'en':''}`},
+  {id:'regen',ic:'🌙',n:'Mondtau',max:2,t:2,x:24,req:['zaeh'],d:r=>`Alle ${30-8*r} s ein Herz zurück`},
+  {id:'frost',ic:'❄️',n:'Eisherz',max:2,t:2,x:76,req:['zaeh'],d:r=>`Frostring: +${3*r} m Radius, +${2*r} s Verlangsamung`},
+  {id:'quell',ic:'🧪',n:'Lebensquell',max:2,t:3,x:24,req:['regen'],d:r=>`Heiltränke heilen ${r} Herz${r>1?'en':''} mehr`},
+  {id:'rinde',ic:'🌳',n:'Rindenhaut',max:2,t:3,x:76,req:['frost'],d:r=>`+${6*r}% Blocken`},
+  {id:'wald',ic:'🌿',n:'Ewiger Wald',max:1,t:4,x:50,req:['quell','rinde'],d:()=>`+2 Herzen, Mondtau 5 s schneller, Freunde heilen (G) doppelt so oft`}]},
+ {school:'Sterne',c:'#7ad0ff',nodes:[
+  {id:'mana',ic:'💧',n:'Sternenquell',max:3,t:1,x:50,req:[],d:r=>`+${4*r} Mana, +${25*r}% Manaregeneration`},
+  {id:'eile',ic:'👟',n:'Kometenschritt',max:2,t:2,x:24,req:['mana'],d:r=>`+${8*r}% Lauftempo`},
+  {id:'gold',ic:'🍀',n:'Glückshut',max:2,t:2,x:76,req:['mana'],d:r=>`+${15*r}% Gold und Beute`},
+  {id:'schild',ic:'🛡️',n:'Schildmeister',max:2,t:3,x:24,req:['eile'],d:r=>`Sternenschild: +${r} Treffer, +${2*r} s`},
+  {id:'komet',ic:'⚡',n:'Sternschnuppe',max:2,t:3,x:76,req:['gold'],d:r=>`Blitz feuert ${12*r}% schneller`},
+  {id:'kosmos',ic:'🌌',n:'Kosmos',max:1,t:4,x:50,req:['schild','komet'],d:()=>`+6 Mana, alle Zauber laden 20% schneller`}]}];
+const TIER_NEED=[0,0,1,4,7],TIER_Y=[0,13,39,65,89];
+const spCdMul=id=>(id==='feuer'?1-.2*tal('inferno'):1)*(tal('kosmos')?.8:1);
 const SPELLS=[{id:'feuer',n:'Feuerball',k:'R',mp:4,cd:1.2,lv:2,c:'#ff7a3a',d:'Explodiert und trifft alle Gegner im Umkreis.'},{id:'frost',n:'Frostring',k:'C',mp:6,cd:6,lv:4,c:'#7ad0ff',d:'Schaden um dich herum, Gegner werden langsam.'},{id:'schild',n:'Sternenschild',k:'X',mp:5,cd:15,lv:6,c:'#ffe27a',d:'Fängt die nächsten 3 Treffer ab (8 s).'}];
 let RPG={inv:[],eq:{},tal:{},mp:10,bonusHp:0,cds:{},shieldHits:0,shieldT:0,regenT:0,lastLv:1,uid:1};
 const tal=id=>RPG.tal[id]|0,gear=s=>Object.values(RPG.eq).reduce((a,it)=>a+((it&&it.st[s])|0),0);
-const totalDmg=()=>player.dmg+gear('dmg'),dmgMul=()=>1+.15*tal('glut')+(CL().mul||0),critCh=()=>Math.min(.75,.05+.08*tal('krit')+gear('krit')/100+(CL().krit||0));
-const maxMp=()=>10+4*tal('mana')+gear('mp')+(CL().mp||0),speedMul=()=>1+.08*tal('eile')+gear('spd')/100+(CL().spd||0),goldMul=()=>1+.15*tal('gold')+gear('gold')/100+(CL().gold||0),blockCh=()=>Math.min(.45,(gear('def')+(CL().block||0))/100);
+const totalDmg=()=>player.dmg+gear('dmg')+tal('brand'),dmgMul=()=>1+.15*tal('glut')+.25*tal('zorn')+(CL().mul||0),critCh=()=>Math.min(.75,.05+.08*tal('krit')+.1*tal('zorn')+gear('krit')/100+(CL().krit||0));
+const maxMp=()=>10+4*tal('mana')+6*tal('kosmos')+gear('mp')+(CL().mp||0),speedMul=()=>1+.08*tal('eile')+gear('spd')/100+(CL().spd||0),goldMul=()=>1+.15*tal('gold')+gear('gold')/100+(CL().gold||0),blockCh=()=>Math.min(.5,(gear('def')+6*tal('rinde')+(CL().block||0))/100);
 const spLv=sp=>CL().early&&CL().early[sp.id]?1:sp.lv,spMp=sp=>sp.mp-(CL().cheap&&CL().cheap[sp.id]||0);
 const talPts=()=>Math.max(0,player.lv-1-Object.values(RPG.tal).reduce((a,b)=>a+b,0));
-function recomputeStats(){const want=tal('zaeh')+gear('hp');player.maxHp+=want-RPG.bonusHp;RPG.bonusHp=want;player.hp=Math.min(player.hp,player.maxHp);RPG.mp=Math.min(RPG.mp,maxMp());updHUD();}
+function recomputeStats(){const want=tal('zaeh')+2*tal('wald')+gear('hp');player.maxHp+=want-RPG.bonusHp;RPG.bonusHp=want;player.hp=Math.min(player.hp,player.maxHp);RPG.mp=Math.min(RPG.mp,maxMp());updHUD();}
 const pick=a=>a[Math.random()*a.length|0];
 function regionTier(x,z){return[1,2,3,4,3,4,4][domReg(x,z)]+(F.zor?1:0);}
 function rollRar(bonus=0){const r=Math.random()*(1+.15*tal('gold'))+bonus;return r>1.05?3:r>.93?2:r>.68?1:0;}
@@ -1572,11 +1624,11 @@ const fballs=[];let shieldMesh=null;
 function aimDir(){const dir=new THREE.Vector3(Math.sin(player.rot),0,Math.cos(player.rot));const from=player.pos.clone();from.y+=1.8;let best=null,bd=45;
   for(const e of enemies){if(e.hp<=0||e.noAim)continue;const tp=e.g.position.clone();tp.y+=e.hitY;const v=tp.sub(from);const d=v.length();if(d<bd&&v.clone().setY(0).normalize().dot(dir)>.8){bd=d;best=v.normalize();}}return{from,dir:best||dir};}
 function castSpell(id){if(state!=='play')return;const sp=SPELLS.find(s=>s.id===id);if(player.lv<spLv(sp)){toast(`${sp.n} lernst du auf Stufe ${spLv(sp)}`);return;}
-  if((RPG.cds[id]||0)>time){return;}if(RPG.mp<spMp(sp)){toast('Nicht genug Mana');beep(200,.1,'square',.04);return;}RPG.mp-=spMp(sp);RPG.cds[id]=time+sp.cd;
+  if((RPG.cds[id]||0)>time){return;}if(RPG.mp<spMp(sp)){toast('Nicht genug Mana');beep(200,.1,'square',.04);return;}RPG.mp-=spMp(sp);RPG.cds[id]=time+sp.cd*spCdMul(id);
   if(id==='feuer'){const{from,dir}=aimDir();const m=new THREE.Group();m.position.copy(from).addScaledVector(dir,1);m.add(glow(0xff6a20,3.4));P(G.sph,basic(0xffc040),m,0,0,0,.45);world.add(m);fballs.push({m,v:dir.multiplyScalar(24),life:2});beep(220,.25,'sawtooth',.06);mpShot(m.position,dir);}
   else if(id==='frost'){const rad=9+3*tal('frost');const ring=P(G.torus,new THREE.MeshBasicMaterial({color:0x9ae0ff,transparent:true,opacity:.8,depthWrite:false}),world,player.pos.x,player.pos.y+.6,player.pos.z,1,1,1);ring.rotation.x=PI/2;fx.push({s:ring,t:0,ring:rad});
     beep(1600,.3,'sine',.05);const d=Math.max(1,Math.round(totalDmg()*dmgMul()));for(const e of enemies){if(e.hp<=0||e.type==='static')continue;if(e.g.position.distanceTo(player.pos)<rad+e.r){spellHit(e,d);if(e.type!=='boss')e.slowT=4+2*tal('frost');}}}
-  else{RPG.shieldHits=3;RPG.shieldT=8;if(!shieldMesh){shieldMesh=P(G.sph,new THREE.MeshBasicMaterial({color:0xffe27a,transparent:true,opacity:.18,blending:THREE.AdditiveBlending,depthWrite:false}),hero,0,1.5,0,2);}shieldMesh.visible=true;beep(880,.4,'triangle',.06);flash('#ffe27a',.25);}
+  else{RPG.shieldHits=3+tal("schild");RPG.shieldT=8+2*tal("schild");if(!shieldMesh){shieldMesh=P(G.sph,new THREE.MeshBasicMaterial({color:0xffe27a,transparent:true,opacity:.18,blending:THREE.AdditiveBlending,depthWrite:false}),hero,0,1.5,0,2);}shieldMesh.visible=true;beep(880,.4,'triangle',.06);flash('#ffe27a',.25);}
   updHot();}
 function explode(pos){const rad=4.5+1.5*tal('feuer'),d=Math.max(1,Math.round(totalDmg()*dmgMul()*(2+tal('feuer'))*.75));for(let i=0;i<4;i++)burst(pos.clone().add(new THREE.Vector3(R(-1,1),R(0,1),R(-1,1))),i%2?0xff6a20:0xffc040);
   const ring=P(G.torus,new THREE.MeshBasicMaterial({color:0xff8a3a,transparent:true,opacity:.8,depthWrite:false}),world,pos.x,pos.y,pos.z,1,1,1);ring.rotation.x=PI/2;fx.push({s:ring,t:0,ring:rad});beep(90,.4,'sawtooth',.08);
@@ -1607,11 +1659,32 @@ function renderInv(){const L=$('invL');L.textContent='';const sh=document.create
   if(!RPG.inv.length){const p=document.createElement('p');p.textContent='Leer. Besiegte Gegner lassen manchmal Beute fallen, Elite-Gegner mit goldenem Leuchten immer.';L.appendChild(p);}
   [...RPG.inv].sort((a,b)=>b.r-a.r||b.lvl-a.lvl).forEach(it=>g.appendChild(itemCard(it,[['Anlegen',()=>{const old=RPG.eq[it.slot];RPG.eq[it.slot]=it;RPG.inv=RPG.inv.filter(x=>x!==it);if(old)RPG.inv.push(old);recomputeStats();beep(700,.12,'triangle');save();renderInv();}],
     [`Verkaufen (${it.val} G)`,()=>{RPG.inv=RPG.inv.filter(x=>x!==it);player.gold+=it.val;beep(1000,.1,'triangle');updHUD();save();renderInv();}]],RPG.eq[it.slot]||{st:{}})));L.appendChild(g);}
-function renderTal(){const L=$('talL');L.textContent='';const p=document.createElement('p');p.className='sheet';p.textContent=`Freie Talentpunkte: ${talPts()} · Jede Stufe bringt einen Punkt.`;L.appendChild(p);
-  const wrap=document.createElement('div');wrap.className='tgrid';for(const sch of TALENTS){const col=document.createElement('div');col.className='tcol';col.style.setProperty('--c',sch.c);const h=document.createElement('h3');h.textContent=sch.school;col.appendChild(h);
-    for(const t of sch.list){const r=tal(t.id);const d=document.createElement('div');d.className='tal';const b=document.createElement('b');b.textContent=`${t.n} ${r}/${t.max}`;const s=document.createElement('small');s.textContent=t.d(Math.max(1,r))+(r?'':' (Rang 1)');
-      const btn=document.createElement('button');btn.className='btn';btn.textContent='+';btn.disabled=!talPts()||r>=t.max;btn.onclick=()=>{RPG.tal[t.id]=r+1;recomputeStats();beep(990,.15,'triangle');markBadges();save();renderTal();};d.append(b,s,btn);col.appendChild(d);}wrap.appendChild(col);}
-  L.appendChild(wrap);const rs=document.createElement('button');rs.className='btn';rs.textContent='Talente zurücksetzen (50 Gold)';rs.disabled=player.gold<50||!Object.keys(RPG.tal).length;rs.onclick=()=>{player.gold-=50;RPG.tal={};recomputeStats();markBadges();save();renderTal();};L.appendChild(rs);
+let talSel=null;
+const schSpent=s=>s.nodes.reduce((a,n)=>a+tal(n.id),0);
+function talState(n,s){const r=tal(n.id);if(r>=n.max)return'max';const reqOk=!n.req.length||n.req.some(q=>tal(q)>0),tierOk=schSpent(s)>=TIER_NEED[n.t];
+  if(!reqOk||!tierOk)return'lock';return talPts()>0?'av':'wait';}
+function renderTal(){const L=$('talL');L.textContent='';const p=document.createElement('p');p.className='sheet';p.textContent=`Freie Skillpunkte: ${talPts()} · Jede Stufe bringt einen Punkt. Tippe einen Skill an, um ihn zu sehen und zu lernen.`;L.appendChild(p);
+  const wrap=document.createElement('div');wrap.className='tgrid';const NS='http://www.w3.org/2000/svg';
+  for(const s of TALENTS){const col=document.createElement('div');col.className='tcol';col.style.setProperty('--c',s.c);const h=document.createElement('h3');h.textContent=`${s.school} · ${schSpent(s)} Punkte`;col.appendChild(h);
+    const tr=document.createElement('div');tr.className='ttree';const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 100 100');svg.setAttribute('preserveAspectRatio','none');
+    for(const n of s.nodes)for(const q of n.req){const pn=s.nodes.find(o=>o.id===q);const l=document.createElementNS(NS,'line');l.setAttribute('x1',pn.x);l.setAttribute('y1',TIER_Y[pn.t]);l.setAttribute('x2',n.x);l.setAttribute('y2',TIER_Y[n.t]);
+      l.setAttribute('class',tal(q)>0?'on':'');svg.appendChild(l);}tr.appendChild(svg);
+    for(const n of s.nodes){const st=talState(n,s),r=tal(n.id);const b=document.createElement('button');b.type='button';b.className='tn '+(r?'on ':'')+st+(talSel===n.id?' sel':'');b.style.left=n.x+'%';b.style.top=TIER_Y[n.t]+'%';b.title=n.n;
+      const ic=document.createElement('span');ic.textContent=n.ic;const rk=document.createElement('i');rk.className='rk';rk.textContent=`${r}/${n.max}`;const nm=document.createElement('em');nm.className='nm';nm.textContent=n.n;b.append(ic,rk,nm);
+      b.onclick=()=>{talSel=n.id;renderTal();};tr.appendChild(b);}
+    col.appendChild(tr);wrap.appendChild(col);}
+  L.appendChild(wrap);
+  const info=document.createElement('div');info.className='tinfo';let sel=null,ss=null;for(const s of TALENTS)for(const n of s.nodes)if(n.id===talSel){sel=n;ss=s;}
+  if(!sel){info.textContent='Wähle oben einen Skill aus. Stufe 2 braucht den Skill darüber, Stufe 3 braucht 4 und die Spitze 7 Punkte im selben Zweig.';}
+  else{const r=tal(sel.id),st=talState(sel,ss);info.style.setProperty('--c',ss.c);const h=document.createElement('b');h.textContent=`${sel.ic} ${sel.n} · Rang ${r}/${sel.max}`;info.appendChild(h);
+    const cur=document.createElement('p');cur.textContent=r?`Jetzt: ${sel.d(r)}`:`Rang 1: ${sel.d(1)}`;info.appendChild(cur);
+    if(r&&r<sel.max){const nx=document.createElement('p');nx.textContent=`Nächster Rang: ${sel.d(r+1)}`;info.appendChild(nx);}
+    const why=document.createElement('p');why.className='why';
+    if(st==='lock'){const need=[];if(sel.req.length&&!sel.req.some(q=>tal(q)>0))need.push('erst '+sel.req.map(q=>ss.nodes.find(o=>o.id===q).n).join(' oder ')+' lernen');if(schSpent(ss)<TIER_NEED[sel.t])need.push(`${TIER_NEED[sel.t]} Punkte in ${ss.school} (du hast ${schSpent(ss)})`);why.textContent='Gesperrt: '+need.join(', ');}
+    else if(st==='wait')why.textContent='Keine freien Skillpunkte. Steig eine Stufe auf.';else if(st==='max')why.textContent='Voll ausgebaut.';info.appendChild(why);
+    const lb=document.createElement('button');lb.className='btn';lb.textContent='Lernen (1 Punkt)';lb.disabled=st!=='av';lb.onclick=()=>{RPG.tal[sel.id]=r+1;recomputeStats();beep(990,.15,'triangle');burst(hero.position.clone().setY(hero.position.y+2),new THREE.Color(ss.c).getHex());markBadges();save();renderTal();};info.appendChild(lb);}
+  L.appendChild(info);
+  const rs=document.createElement('button');rs.className='btn';rs.textContent='Skills zurücksetzen (50 Gold)';rs.disabled=player.gold<50||!Object.keys(RPG.tal).length;rs.onclick=()=>{player.gold-=50;RPG.tal={};recomputeStats();markBadges();save();renderTal();};L.appendChild(rs);
   const cb=document.createElement('button');cb.className='btn';cb.style.marginLeft='8px';cb.textContent=`Klasse wechseln (O)`+(clsFree()?' · kostenlos!':'');cb.onclick=()=>{closeMenu('talP');openMenu('clsP',renderCls);};L.appendChild(cb);}
 $('invBtn').onclick=()=>openMenu('invP',renderInv);$('talBtn').onclick=()=>openMenu('talP',renderTal);$('invX').onclick=()=>closeMenu('invP');$('talX').onclick=()=>closeMenu('talP');
 addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='Escape'){for(const id of['invP','talP'])if(!$(id).hidden)closeMenu(id);return;}
@@ -1622,7 +1695,7 @@ if(touchMode){$('bFire').addEventListener('pointerdown',e=>{e.stopPropagation();
 /* Takt, Speichern */
 let hotT=0;
 function rpgTick(dt){if(state==='title')return;RPG.mp=Math.min(maxMp(),RPG.mp+dt*.8*(1+.25*tal('mana'))*(1+gear('regen')/100+(CL().regen||0)));
-  const rp=Math.min(tal('regen')?30-8*tal('regen'):1e9,CL().regen0||1e9);
+  const rp=Math.min(tal('regen')?30-8*tal('regen'):1e9,CL().regen0||1e9)-(tal('wald')?5:0);
   if(rp<1e9&&state==='play'){RPG.regenT+=dt;if(RPG.regenT>rp){RPG.regenT=0;if(player.hp<player.maxHp){player.hp++;feed((tal('regen')?'Mondtau':'Moosheilung')+': +1 Herz','#5aff8a');updHUD();}}}
   if(RPG.shieldT>0){RPG.shieldT-=dt;if(RPG.shieldT<=0||RPG.shieldHits<=0){RPG.shieldT=0;RPG.shieldHits=0;if(shieldMesh)shieldMesh.visible=false;}else if(shieldMesh)shieldMesh.rotation.y+=dt;}
   for(const e of enemies){if(e.slowT>0){if(!e.spd0&&e.speed){e.spd0=e.speed;e.speed*=.4;}e.slowT-=dt;if(e.slowT<=0&&e.spd0){e.speed=e.spd0;e.spd0=0;}}}
@@ -1630,7 +1703,7 @@ function rpgTick(dt){if(state==='title')return;RPG.mp=Math.min(maxMp(),RPG.mp+dt
     if(!boom)for(const e of enemies){if(e.hp<=0||e.noAim)continue;const c=e.g.position;if(Math.hypot(c.x-p.x,c.y+e.hitY-p.y,c.z-p.z)<e.r+.8){boom=true;break;}}if(boom){explode(p.clone());world.remove(b.m);fballs.splice(i,1);}}
   for(let i=nums.length-1;i>=0;i--){const n=nums[i];n.t+=dt;n.s.position.y+=dt*1.6;n.s.material.opacity=Math.max(0,1-n.t/1.1);if(n.t>1.1){world.remove(n.s);n.s.material.map.dispose();nums.splice(i,1);}}
   for(const f of fx)if(f.ring){const k=Math.min(f.ring,1+f.t*f.ring*4);f.s.scale.set(k,k,1);f.s.material.opacity=Math.max(0,.8-f.t*2.2);}
-  if(player.lv!==RPG.lastLv){if(player.lv>RPG.lastLv){const sp=SPELLS.find(s=>spLv(s)===player.lv);if(sp)setTimeout(()=>toast(`Neuer Zauber: ${sp.n} (${sp.k})`),1600);feed('Talentpunkt erhalten (K)','#c89aff');if(player.lv%10===0)setTimeout(()=>{toast('Kostenloser Klassenwechsel freigeschaltet! Taste O');feed('Klassenwechsel frei (O)','#ffd23a');},3400);}RPG.lastLv=player.lv;markBadges();}
+  if(player.lv!==RPG.lastLv){if(player.lv>RPG.lastLv){const sp=SPELLS.find(s=>spLv(s)===player.lv);if(sp)setTimeout(()=>toast(`Neuer Zauber: ${sp.n} (${sp.k})`),1600);feed('Skillpunkt erhalten (K)','#c89aff');if(player.lv%10===0)setTimeout(()=>{toast('Kostenloser Klassenwechsel freigeschaltet! Taste O');feed('Klassenwechsel frei (O)','#ffd23a');},3400);}RPG.lastLv=player.lv;markBadges();}
   hotT-=dt;if(hotT<0){hotT=.1;updHot();}}
 function rpgSave(){return{inv:RPG.inv,eq:RPG.eq,tal:RPG.tal,mp:Math.floor(RPG.mp),bonusHp:RPG.bonusHp,uid:RPG.uid};}
 function rpgLoad(d){if(d&&Array.isArray(d.inv)){RPG.inv=d.inv;RPG.eq=d.eq||{};RPG.tal=d.tal||{};RPG.mp=d.mp|0;RPG.bonusHp=d.bonusHp|0;RPG.uid=d.uid||100;}
@@ -1668,7 +1741,7 @@ const m2w=(px,py)=>{const s=mapScale();return[(px-mc.width/2)/s+mapView.cx,(py-m
 function mapHits(){const h=[];SHRINES.forEach((s,i)=>h.push({x:s[1],z:s[2],r:9,t:'shrine',i,n:s[0]+(F.shr&&F.shr.includes(i)?' · Klicken zum Hinreisen':' · noch nicht entdeckt')}));
   MAP_POI.forEach(p=>{if(isExplored(p[1],p[2]))h.push({x:p[1],z:p[2],r:8,t:'poi',n:p[0]});});
   markers.forEach(m=>{if(m.ch)h.push({x:m.g.position.x,z:m.g.position.z,r:7,t:'npc',n:(npcs[m.id]&&npcs[m.id].name||'')+(m.ch==='?'?' · Auftrag abgeben':' · neuer Auftrag')});});
-  remotes.forEach(r=>h.push({x:r.tp.x,z:r.tp.z,r:7,t:'friend',n:`${r.name} · Stufe ${r.lv}`}));return h;}
+  remotes.forEach(r=>h.push({x:r.tp.x,z:r.tp.z,r:7,t:'friend',rm:r,n:`${(CLS[r.cl]||CLS.magier).ic} ${r.name} · ${(CLS[r.cl]||CLS.magier).n} · Stufe ${r.lv} · ${Math.round(Math.hypot(r.tp.x-player.pos.x,r.tp.z-player.pos.z))} m · Klicken zum Hinreisen`}));return h;}
 function isExplored(x,z){const i=Math.floor((x+1500)/EXC),j=Math.floor((z+1500)/EXC);if(i<0||j<0||i>=EXN||j>=EXN)return false;return exArr()[j*EXN+i]==='1';}
 function drawBigMap(){const W=mc.width,Hh=mc.height,s=mapScale(),dpr=W/mc.clientWidth;mx.fillStyle='#08040f';mx.fillRect(0,0,W,Hh);mx.imageSmoothingEnabled=false;
   const[ox,oy]=w2m(-1500,-1500);mx.drawImage(mapBg,ox,oy,3000*s,3000*s);
@@ -1684,12 +1757,14 @@ function drawBigMap(){const W=mc.width,Hh=mc.height,s=mapScale(),dpr=W/mc.client
     if(mapView.z>=3||p[3]==='town'){mx.font=`${fs(11)} 'Alegreya Sans', sans-serif`;mx.lineWidth=3*dpr;mx.strokeStyle='#000';mx.strokeText(p[0],a,b+12*dpr);mx.fillStyle='#fff';mx.fillText(p[0],a,b+12*dpr);}});
   SHRINES.forEach((s,i)=>icon(s[1],s[2],F.shr&&F.shr.includes(i)?'#ff9a2a':'#6a6070','s',7));
   for(const[x,z]of questTargets()){const[a,b]=w2m(x,z);mx.strokeStyle='#ffd23a';mx.lineWidth=2*dpr;mx.beginPath();mx.arc(a,b,(7+Math.sin(time*4)*2)*dpr,0,7);mx.stroke();mx.fillStyle='#ffd23a';mx.beginPath();mx.arc(a,b,3*dpr,0,7);mx.fill();}
-  for(const m of markers){if(!m.ch)continue;const[a,b]=w2m(m.g.position.x,m.g.position.z);mx.font=`bold ${fs(16)} Georgia`;mx.lineWidth=4*dpr;mx.strokeStyle='#3a1a00';mx.strokeText(m.ch,a,b);mx.fillStyle=m.ch==='?'?'#7dffea':'#ffd23a';mx.fillText(m.ch,a,b);}
-  for(const r of remotes.values()){const[a,b]=icon(r.tp.x,r.tp.z,'#'+new THREE.Color().setHSL(r.hue,.9,.65).getHexString(),'c',8);mx.font=`${fs(11)} 'Alegreya Sans', sans-serif`;mx.lineWidth=3*dpr;mx.strokeStyle='#000';mx.strokeText(r.name,a,b-12*dpr);mx.fillStyle='#fff';mx.fillText(r.name,a,b-12*dpr);}
+  for(const m of markers){if(!m.ch)continue;const[a,b]=w2m(m.g.position.x,m.g.position.z);qBadge(mx,a,b,m.ch,9*dpr,dpr);const nn=npcs[m.id]&&npcs[m.id].name;
+    if(nn){mx.font=`bold ${fs(12)} 'Alegreya Sans', sans-serif`;mx.lineWidth=3.5*dpr;mx.strokeStyle='#000';mx.strokeText(nn,a,b+18*dpr);mx.fillStyle=m.ch==='?'?'#7dffea':'#ffd23a';mx.fillText(nn,a,b+18*dpr);}}
+  for(const r of remotes.values()){const c=CLS[r.cl]||CLS.magier,[a,b]=w2m(r.tp.x,r.tp.z);plArrow(mx,a,b,r.rot,c.c,9*dpr,2*dpr);
+    const lb=`${c.ic} ${r.name} · St. ${r.lv}`;mx.font=`bold ${fs(12)} 'Alegreya Sans', sans-serif`;mx.lineWidth=3.5*dpr;mx.strokeStyle='#000';mx.strokeText(lb,a,b-17*dpr);mx.fillStyle=c.c;mx.fillText(lb,a,b-17*dpr);}
   if(F.wp){const[a,b]=w2m(F.wp[0],F.wp[1]);mx.strokeStyle='#7dffea';mx.lineWidth=2*dpr;mx.setLineDash([6*dpr,5*dpr]);const[pa,pb]=w2m(player.pos.x,player.pos.z);mx.beginPath();mx.moveTo(pa,pb);mx.lineTo(a,b);mx.stroke();mx.setLineDash([]);icon(F.wp[0],F.wp[1],'#7dffea','d',8);}
   const[pa,pb]=w2m(player.pos.x,player.pos.z);mx.save();mx.translate(pa,pb);mx.rotate(-player.rot+PI);const k=9*dpr;mx.fillStyle='#5ff3ff';mx.strokeStyle='#000';mx.lineWidth=2*dpr;mx.beginPath();mx.moveTo(0,-k);mx.lineTo(k*.7,k*.8);mx.lineTo(-k*.7,k*.8);mx.closePath();mx.fill();mx.stroke();mx.restore();
   mx.font=`${fs(13)} Metamorphous, Georgia`;mx.fillStyle='#ffc83d';mx.fillText('N',W/2,14*dpr);
-  const ex1=ex.split('').filter(c=>c==='1').length;$('mapInfo').textContent=`Erkundet: ${Math.round(ex1/(EXN*EXN)*100)} % · Schreine: ${(F.shr||[0]).length}/${SHRINES.length}`+(F.wp?` · Wegpunkt: ${Math.round(Math.hypot(F.wp[0]-player.pos.x,F.wp[1]-player.pos.z))} m`:'');}
+  const ex1=ex.split('').filter(c=>c==='1').length;$('mapInfo').textContent=`Erkundet: ${Math.round(ex1/(EXN*EXN)*100)} % · Schreine: ${(F.shr||[0]).length}/${SHRINES.length}`+(remotes.size?` · ${remotes.size} Mitspieler`:'')+(F.wp?` · Wegpunkt: ${Math.round(Math.hypot(F.wp[0]-player.pos.x,F.wp[1]-player.pos.z))} m`:'');}
 function sizeMap(){const r=mc.getBoundingClientRect(),dpr=Math.min(2,devicePixelRatio||1);mc.width=Math.round(r.width*dpr);mc.height=Math.round(r.height*dpr);}
 function openMap(){if(state!=='play'&&!(state==='menu'&&mapOpen))return;if(mapOpen){closeMap();return;}state='menu';mapOpen=true;$('mapP').hidden=false;mapView={z:Math.hypot(player.pos.x,player.pos.z)<290?5:3,cx:player.pos.x,cz:player.pos.z};clampView();sizeMap();drawBigMap();}
 function closeMap(){mapOpen=false;$('mapP').hidden=true;$('mapTip').hidden=true;if(state==='menu')state='play';}
@@ -1702,6 +1777,7 @@ mc.addEventListener('pointermove',e=>{const[px,py]=evPos(e);if(mapDrag){const dx
   const h=hitAt(px,py),tip=$('mapTip');if(h&&!mapDrag){tip.textContent=h.n;tip.hidden=false;const r=mc.getBoundingClientRect();tip.style.left=(e.clientX-r.left+14)+'px';tip.style.top=(e.clientY-r.top+10)+'px';}else tip.hidden=true;});
 mc.addEventListener('pointerup',e=>{if(!mapDrag)return;const click=mapDrag.m<6;mapDrag=null;if(!click)return;const[px,py]=evPos(e);const h=hitAt(px,py);
   if(h&&h.t==='shrine'){if(F.shr&&F.shr.includes(h.i))fastTravel(h.i);else toast('Diesen Schrein musst du erst finden');return;}
+  if(h&&h.t==='friend'){travelTo(h.rm);return;}
   const[wx,wz]=m2w(px,py);if(F.wp&&Math.hypot(F.wp[0]-wx,F.wp[1]-wz)<50/mapView.z)setWaypoint(null);else{setWaypoint(wx,wz);beep(880,.1,'triangle');}drawBigMap();});
 $('mapX').onclick=closeMap;$('mapCenter').onclick=()=>{mapView.cx=player.pos.x;mapView.cz=player.pos.z;clampView();drawBigMap();};$('mapClear').onclick=()=>{setWaypoint(null);drawBigMap();};
 $('mapZin').onclick=()=>{mapView.z*=1.4;clampView();drawBigMap();};$('mapZout').onclick=()=>{mapView.z/=1.4;clampView();drawBigMap();};
@@ -2172,6 +2248,59 @@ function moreTick(dt){
   if(F.mn===1){if(F.mnGot.length>=6)t.push(NP('kuno'));else pickups.forEach(p=>{if(p.kind==='ore')t.push([p.g.position.x,p.g.position.z]);});}
   if(F.bee===1){if(F.beeN>=6)t.push(NP('summsel'));else t.push([-1135,300]);}
   return t.filter(Boolean);};}
+
+/* ===== Quest verfolgen: Ziele pro Quest ===== */
+{const NP=id=>npcs[id]?[npcs[id].g.position.x,npcs[id].g.position.z]:null,PK=k=>pickups.filter(p=>p.kind===k).map(p=>[p.g.position.x,p.g.position.z]),EP=e=>[e.g.position.x,e.g.position.z];
+ const forestT=()=>has('forest')?[]:F.kn<2?[[-825,-175]]:F.kn<3?WORLD.lanterns.filter(e=>!e.lit).map(EP):[[-1090,-300]];
+ const sumpfT=()=>has('sumpf')?[]:[[900,75]],burgT=()=>has('burg')?[]:[F.keys<2?[0,1075]:[0,1380]].concat(PK('key')),riverT=()=>F.br>=2?[[0,-1290]]:[[70,-750]];
+ const QTS={
+  'Die Träume der Sonne':()=>{const t=[];if(F.main===0||(F.main===1&&F.vs>=4))t.push(NP('sol'));if(F.main===1&&F.vs<4)enemies.forEach(e=>{if(e.hp>0&&e.villageSoot)t.push(EP(e));});
+    if(F.main>=2&&!F.end){t.push(...forestT(),...sumpfT(),...burgT());if(F.main===3&&['forest','sumpf','burg'].every(has))t.push(...riverT());}return t.concat(PK('main'));},
+  'Knorz in Nöten':forestT,'Die Köchin im Sumpf':sumpfT,'Die Burg des Drachen':burgT,'Der schlafende Fluss':riverT,
+  'Mietze ist weg':()=>F.cat===1?[[-560,-220]]:F.cat===2?[NP('kruste')]:[],
+  'Bodos Pilzbräu':()=>F.muN>=6?[NP('bodo')]:[[-825,-175],[900,75]],
+  'Flatterplage':()=>F.batN>=5?[NP('glibb')]:enemies.filter(e=>e.hp>0&&e.type==='bat').slice(0,8).map(EP),
+  'Gerds Kopfgeld':()=>F.boN>=10?[NP('gerd')]:[],
+  'Morwens Schwert':()=>F.swGot?[NP('morwen')]:[[290,1060]],
+  'Post für Schiefstadt':()=>F.ppN>=5?[NP('pips')]:PK('letter'),
+  'Sternsplitter':()=>F.stN>=4?[NP('vega')]:PK('star'),
+  'Arena der Träume':()=>[NP('brakus')],
+  'Schafe zählen':()=>F.shGot.length>=5?[NP('wilhelmine')]:(WORLD.lost||[]).filter(s=>!F.shGot.includes(s.i)).map(s=>[s.g.position.x,s.g.position.z]),
+  'Goldene Kürbisse':()=>F.pkGot.length>=8?[NP('ottilie')]:PK('pumpkin'),
+  'Steckbriefe':()=>F.mini.every(Boolean)?[NP('rabea')]:(WORLD.minis||[]).filter(m=>m.e.hp>0).map(m=>EP(m.e)),
+  'Signalfeuer':()=>F.sigL.length>=5?[NP('bernd')]:WT.filter((w,i)=>!F.sigL.includes(i)),
+  'Das dunkle Leuchtfeuer':()=>[F.lh===1?NP('fiete'):NP('hella')],
+  'Die Glitzermine':()=>F.mnGot.length>=6?[NP('kuno')]:PK('ore'),
+  'Wespenplage':()=>F.beeN>=6?[NP('summsel')]:[[-1135,300]]};
+ const _qtAll=questTargets;questTargets=function(){const q=trackedQ();if(q&&QTS[q.t])return QTS[q.t]().filter(Boolean);return _qtAll();};}
+
+/* ===== Eigener Name (überall) ===== */
+function customName(){try{return clean(localStorage.getItem('sf-name')||'').slice(0,20);}catch(e){return'';}}
+function setCustomName(n){n=clean(n).slice(0,20);try{localStorage.setItem('sf-name',n);}catch(e){}return n;}
+
+/* ===== Tageszeit per Abstimmung: mehr als die Hälfte muss zustimmen ===== */
+let DN={s:0,t0:0,tg:''},myVote=null,myBal=null,voteT=0;const voteDone=new Set();
+function dnOfs(){if(!DN.s)return 0;return(DN.tg==='nacht'?.75:.25)*DAYLEN-((DN.t0/1000)%DAYLEN);}
+function isNightNow(){const ph=((((Date.now()/1000+dnOfs())%DAYLEN)+DAYLEN)%DAYLEN)/DAYLEN;return Math.sin(ph*TAU)<0;}
+const okVote=v=>v&&typeof v==='object'&&typeof v.id==='string'&&v.id.length<40&&Number.isFinite(v.t0)&&(v.tg==='tag'||v.tg==='nacht')&&Math.abs(Date.now()-v.t0)<30000;
+function startVote(){if(state!=='play'&&state!=='menu')return;if(activeVote()){toast('Es läuft schon eine Abstimmung');return;}
+  const t0=Date.now();myVote={id:t0+'-'+Math.random().toString(36).slice(2,7),t0,tg:isNightNow()?'tag':'nacht',by:customName()||'Du'};myBal={id:myVote.id,y:1};beep(660,.15,'triangle');voteT=0;}
+function activeVote(){let best=okVote(myVote)?myVote:null;for(const r of remotes.values()){const v=r.pr&&r.pr.vote;if(okVote(v)&&!voteDone.has(v.id)&&(!best||v.t0<best.t0||(v.t0===best.t0&&v.id<best.id)))best=Object.assign({},v,{who:r.name});}
+  if(best&&voteDone.has(best.id))return null;return best;}
+function castBallot(y){const v=activeVote();if(!v)return;myBal={id:v.id,y:y?1:0};beep(y?880:300,.1,'triangle');voteT=0;}
+function voteTick(){if(state==='title')return;
+  for(const r of remotes.values()){const d=r.pr&&r.pr.dn;if(d&&Number.isFinite(d.s)&&Number.isFinite(d.t0)&&(d.tg==='tag'||d.tg==='nacht')&&d.s>DN.s&&d.s<Date.now()+60000){DN={s:d.s,t0:d.t0,tg:d.tg};feed(d.tg==='nacht'?'Die Nacht bricht herein':'Der Tag bricht an','#ffd23a');}}
+  if(myVote&&!okVote(myVote))myVote=null;
+  const v=activeVote(),el=$('voteB');if(!v){el.hidden=true;return;}
+  const n=1+remotes.size;let yes=myBal&&myBal.id===v.id&&myBal.y?1:0,no=myBal&&myBal.id===v.id&&!myBal.y?1:0;
+  for(const r of remotes.values()){const b=r.pr&&r.pr.bal;if(b&&b.id===v.id){if(b.y)yes++;else no++;}}
+  if(yes*2>n){voteDone.add(v.id);DN={s:Math.max(v.t0,DN.s+1),t0:v.t0,tg:v.tg};myVote=null;el.hidden=true;flash(v.tg==='nacht'?'#0a0820':'#ffe0a0',.6);beep(523,.3,'sine',.07);toast(v.tg==='nacht'?`🌙 Abstimmung angenommen (${yes}/${n}): Es wird Nacht`:`☀️ Abstimmung angenommen (${yes}/${n}): Es wird Tag`);return;}
+  if(no*2>=n&&n>1){voteDone.add(v.id);if(myVote&&myVote.id===v.id)myVote=null;el.hidden=true;toast(`Abstimmung abgelehnt (${yes} Ja, ${no} Nein)`);return;}
+  const left=Math.max(0,Math.ceil((30000-(Date.now()-v.t0))/1000)),mine=myBal&&myBal.id===v.id;
+  $('voteTxt').textContent=`${v.tg==='nacht'?'🌙':'☀️'} ${v.who||'Du'} will ${v.tg==='nacht'?'Nacht':'Tag'} · Ja ${yes} von ${n} (nötig: ${Math.floor(n/2)+1}) · noch ${left} s`+(mine?` · Du: ${myBal.y?'Ja':'Nein'}`:'');
+  $('voteY').hidden=$('voteN').hidden=!!mine;el.hidden=false;}
+$('voteY').onclick=e=>{e.stopPropagation();castBallot(1);};$('voteN').onclick=e=>{e.stopPropagation();castBallot(0);};
+$('clock').title='Klicken: Abstimmung über Tag/Nacht starten';$('clock').onclick=e=>{e.stopPropagation();startVote();};
 
 L=WORLD;buildAll();player.pos.set(0,0,16);state='title';
 loop();
