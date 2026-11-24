@@ -128,6 +128,10 @@ button.big:hover,button.big:focus-visible{background:#ff5a2e;outline:2px solid v
 .opt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:rgba(10,4,24,.6);border:2px solid #4a4060;color:var(--paper);padding:8px 10px;border-radius:4px;cursor:pointer;font:14px var(--body);min-width:150px;flex:1}
 .opt small{opacity:.8;font-size:12px}.opt.on{border-color:var(--gold);box-shadow:0 0 10px rgba(255,200,61,.4)}.opt:hover,.opt:focus-visible{border-color:var(--glow);outline:none}
 #setL h3{margin:12px 0 4px;color:var(--gold)}
+.set-tabs{display:flex;gap:4px;border-bottom:2px solid var(--gold);margin-bottom:6px}.set-tab{background:rgba(10,4,24,.6);border:2px solid #4a4060;border-bottom:none;color:var(--paper);padding:6px 14px;font:700 14px var(--body);cursor:pointer;border-radius:4px 4px 0 0}.set-tab.on{background:var(--gold);color:#1a0a2a;border-color:var(--gold)}.set-tab:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+.ctl-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0;font-size:14px}.ctl-row input[type=range]{flex:1;min-width:140px;accent-color:var(--gold)}.ctl-chk{cursor:pointer}.ctl-chk input{width:18px;height:18px;accent-color:var(--gold)}
+.ctl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}.ctl-box{border:1px solid #4a4060;border-radius:4px;padding:6px 10px;background:rgba(10,4,24,.5)}.ctl-box h4{margin:0 0 4px;color:var(--glow);font-size:14px}
+.ctl-box dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0;font-size:13px;align-items:baseline}.ctl-box dt{white-space:nowrap}.ctl-box dd{margin:0}.ctl-box kbd{border:1px solid var(--glow);border-radius:3px;padding:0 5px;color:var(--glow);font-size:12px}
 .tal{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;border-left:3px solid var(--c);padding:6px 8px;margin-bottom:6px;background:rgba(255,255,255,.03)}.tal small{grid-column:1;opacity:.8;font-size:12px}.tal .btn{grid-row:1/3;grid-column:2;padding:4px 12px}
 .tb.sp{width:52px;height:52px;font-size:11px}#bFire{right:calc(max(16px,env(safe-area-inset-right,0px)) + 154px);bottom:calc(env(safe-area-inset-bottom,0px) + 166px)}
 #bFrost{right:calc(max(16px,env(safe-area-inset-right,0px)) + 88px);bottom:calc(env(safe-area-inset-bottom,0px) + 172px)}#bShield{right:calc(max(16px,env(safe-area-inset-right,0px)) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 268px)}
@@ -313,15 +317,26 @@ function strip(wd,z0,z1,xf,hfn,mat,lift=.08){const len=Math.abs(z1-z0),n=Math.ce
 const vc=(o)=>lam(Object.assign({vertexColors:true},o));
 
 /* ---------- Fennick Sternenhut ---------- */
-const hero=new THREE.Group(),HEROL={};
-(()=>{const robe=lam({map:T.robe(1)});
-  P(G.cone,robe,hero,0,.85,0,.75,1.7,.75);P(G.sph,lam({color:0xffc8a0}),hero,0,1.95,0,.38);
-  P(G.cone,lam({color:0xeeeeff}),hero,0,1.62,.24,.33,.7,.33).rotation.x=PI;
-  P(G.sph,lam({color:0xff8a7a}),hero,0,1.95,.36,.12);
-  const hat=P(G.cone,robe,hero,0,2.95,-.12,.55,1.7,.55);hat.rotation.x=-.35;
-  P(G.cyl,robe,hero,0,2.15,0,.88,.08,.88);
-  P(G.cyl,lam({color:0x6a3a1a}),hero,.6,1.1,.3,.05,2.3,.05);
-  const orb=glow(0x5ff3ff,1.3);orb.position.set(.6,2.3,.3);hero.add(orb);P(G.sph,basic(0xaffcff),hero,.6,2.3,.3,.15);HEROL.robe=robe;HEROL.orb=orb;})();
+/* Detaillierter Körper für Spielerfiguren: Beine mit Stiefeln, Oberkörper mit Gürtel, Arme mit Ellbogen und Händen, Stab in der Hand */
+function buildChar(g,robe){const skin=M('skin',()=>lam({color:0xffc8a0})),pants=M('pants',()=>lam({color:0x3a2a4a})),boot=M('boot',()=>lam({color:0x4a2a14})),belt=M('belt',()=>lam({color:0x5a3418})),
+    gold=M('buckle',()=>lam({color:0xffd040,emissive:0x402000})),eye=M('eye',()=>basic(0x120818)),beard=M('beardW',()=>lam({color:0xeeeeff})),cuff=M('cuff',()=>lam({color:0xe8d8a0}));const B={ph:0,bob:0};
+  for(const s of[-1,1]){const leg=new THREE.Group();leg.position.set(s*.2,.8,0);g.add(leg);P(G.cyl,pants,leg,0,-.32,0,.11,.64,.11);P(G.box,boot,leg,0,-.7,.07,.24,.17,.38);B[s<0?'legL':'legR']=leg;}
+  P(G.cone,robe,g,0,1.12,0,.62,1.4,.62);P(G.cyl,robe,g,0,1.56,0,.34,.56,.3);
+  P(G.cyl,belt,g,0,1.3,0,.4,.1,.36);P(G.box,gold,g,0,1.3,.36,.14,.11,.04);
+  for(const s of[-1,1])P(G.sph,robe,g,s*.37,1.78,0,.15);
+  P(G.sph,skin,g,0,1.98,0,.36);for(const s of[-1,1])P(G.sph,eye,g,s*.13,2.05,.31,.05,.06,.04);
+  P(G.sph,M('nose',()=>lam({color:0xff8a7a})),g,0,1.95,.36,.11);P(G.cone,beard,g,0,1.62,.24,.31,.68,.3).rotation.x=PI;
+  const hat=P(G.cone,robe,g,0,2.95,-.12,.55,1.7,.55);hat.rotation.x=-.35;P(G.cyl,robe,g,0,2.15,0,.88,.08,.88);
+  for(const s of[-1,1]){const sh=new THREE.Group();sh.position.set(s*.42,1.78,0);g.add(sh);P(G.cyl,robe,sh,0,-.22,0,.1,.46,.1);
+    const el=new THREE.Group();el.position.set(0,-.45,0);sh.add(el);P(G.cyl,robe,el,0,-.18,0,.12,.38,.12);P(G.cyl,cuff,el,0,-.36,0,.13,.06,.13);P(G.sph,skin,el,0,-.46,0,.11,.12,.1);
+    if(s<0){B.armL=sh;B.foreL=el;}else{B.armR=sh;B.foreR=el;}}
+  const grip=new THREE.Group();grip.position.set(0,-.46,0);B.foreR.add(grip);P(G.cyl,M('staff',()=>lam({color:0x6a3a1a})),grip,0,.2,0,.05,2.3,.05);P(G.sph,basic(0xaffcff),grip,0,1.35,0,.15);B.grip=grip;
+  g.userData.body=B;poseIdle(B,0);return B;}
+function poseIdle(B,t){B.armL.rotation.set(0,0,-.12+Math.sin(t*2)*.02);B.foreL.rotation.set(-.15,0,0);B.armR.rotation.set(-.45,0,.12);B.foreR.rotation.set(-.55,0,0);B.grip.rotation.set(1,0,-.12);B.legL.rotation.set(0,0,0);B.legR.rotation.set(0,0,0);}
+function animBody(g,spd,dt){const B=g.userData.body;if(!B)return;const k=Math.min(1,spd/9);poseIdle(B,time);if(k<.04){B.bob=0;return;}B.ph+=dt*(5+spd*.55);const s=Math.sin(B.ph)*k;
+  B.legL.rotation.x=s*.65;B.legR.rotation.x=-s*.65;B.armL.rotation.x=-s*.55;B.foreL.rotation.x=-.15-.35*k;B.armR.rotation.x=-.45+s*.12;B.bob=Math.abs(Math.cos(B.ph))*.08*k;}
+const hero=new THREE.Group(),HEROL={},heroLast=new THREE.Vector3();
+(()=>{const robe=lam({map:T.robe(1)});const B=buildChar(hero,robe);HEROL.robe=robe;HEROL.grip=B.grip;const orb=glow(0x5ff3ff,1.3);orb.position.set(0,1.35,0);B.grip.add(orb);HEROL.orb=orb;})();
 scene.add(hero);
 
 /* ---------- Sol Glutbart: Sonne mit Gesicht und goldenen Beinen ---------- */
@@ -1008,7 +1023,7 @@ addEventListener('keydown',e=>{if(state==='chat')return;keys[e.code]=true;
 addEventListener('keyup',e=>keys[e.code]=false);
 let drag=null;const cv=$('c');
 cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,id:e.pointerId,moved:0,touch:e.pointerType==='touch'};});
-addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.moved+=Math.abs(dx)+Math.abs(dy);camYaw-=dx*.006;camPitch=Math.min(1.1,Math.max(.05,camPitch+dy*.004));drag.x=e.clientX;drag.y=e.clientY;});
+addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.moved+=Math.abs(dx)+Math.abs(dy);camYaw-=dx*.006*SENS();camPitch=Math.min(1.1,Math.max(.05,camPitch+dy*.004*SENS()*(INVY()?-1:1)));drag.x=e.clientX;drag.y=e.clientY;});
 addEventListener('pointerup',e=>{if(drag&&drag.id===e.pointerId){if(drag.moved<6&&!drag.touch&&state==='play')shoot();drag=null;}});
 const touchMode=matchMedia('(pointer:coarse)').matches;let stick={x:0,y:0,id:null};
 if(touchMode){const st=$('stick'),kn=$('knob');
@@ -1145,7 +1160,8 @@ function update(dt){time+=dt;if(skyU)skyU.t.value=time;
   for(const s of smoke){const k=(time*.22+s.o)%1;s.m.position.set(s.x+Math.sin(time+s.o*6)*.6,s.y+k*7,s.z);const sc=1+k*3.5;s.m.scale.set(sc,sc,1);s.m.material.opacity=(1-k)*.75;}
   for(const f of flick){const s=f.userData.b||(f.userData.b=f.scale.x);const k=s*(1+Math.sin(time*13+f.position.x*3)*.15);f.scale.set(k,k,1);}
   for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.t+=dt;const s=1+f.t*10;f.s.scale.set(s,s,1);if(f.t>.35){world.remove(f.s);fx.splice(i,1);}}
-  hero.position.copy(player.pos);if(riding)hero.position.y+=.6+Math.sin(time*3)*.12;hero.rotation.y=player.rot;hero.visible=!(player.inv>0&&Math.floor(time*20)%2);
+  {const hs=Math.hypot(player.pos.x-heroLast.x,player.pos.z-heroLast.z)/Math.max(dt,1e-3);heroLast.copy(player.pos);animBody(hero,riding||!player.onGround?0:hs,dt);}
+  hero.position.copy(player.pos);hero.position.y+=hero.userData.body.bob;if(riding)hero.position.y+=.6+Math.sin(time*3)*.12;hero.rotation.y=player.rot;hero.visible=!(player.inv>0&&Math.floor(time*20)%2);
   if(state==='title')camYaw+=dt*.1;
   const by=Math.max(player.pos.y,-4)+2,cm=state==='title'?0:camMode;
   if(cm===3){/* Ego-Sicht */hero.visible=false;if(state==='play')player.rot=camYaw+PI;const ep=(camPitch-.35)*1.4,ey=player.pos.y+2.6+(riding?.6:0);
@@ -1190,7 +1206,7 @@ const SKINS={
 function skinIdx(){const i=(player.skins&&player.skins[player.cls])|0;return SKIN_LV[i]<=player.lv?Math.max(0,Math.min(3,i)):0;}
 function setSkin(i){if(SKIN_LV[i]>player.lv){toast(`Dieser Skin wird auf Stufe ${SKIN_LV[i]} frei`);return;}player.skins=player.skins||{};player.skins[player.cls]=i;applyClassLook();beep(880,.12,'triangle');flash((CLS[player.cls]||CLS.magier).c,.25);save();}
 function applyClassLook(){dressHero(hero,HEROL,player.cls,skinIdx());}
-function dressHero(g,refs,cls,sk){const c=CLS[cls]||CLS.magier,s=(SKINS[cls]||SKINS.magier)[sk|0]||{robe:c.robe,orb:c.orb};refs.robe.color.setHex(s.robe);g.remove(refs.orb);refs.orb=glow(s.orb,1.3);refs.orb.position.set(.6,2.3,.3);g.add(refs.orb);
+function dressHero(g,refs,cls,sk){const c=CLS[cls]||CLS.magier,s=(SKINS[cls]||SKINS.magier)[sk|0]||{robe:c.robe,orb:c.orb};refs.robe.color.setHex(s.robe);if(refs.orb&&refs.orb.parent)refs.orb.parent.remove(refs.orb);refs.orb=glow(s.orb,1.3);if(refs.grip){refs.orb.position.set(0,1.35,0);refs.grip.add(refs.orb);}else{refs.orb.position.set(.6,2.3,.3);g.add(refs.orb);}
   if(refs.acc)g.remove(refs.acc);refs.acc=classAcc(cls);g.add(refs.acc);
   if(sk>=2){const t=glow(s.orb,1.1);t.position.set(0,3.85,-.44);refs.acc.add(t);for(let i=0;i<3;i++){const sp=glow(s.orb,.5);const a=i/3*TAU;sp.position.set(Math.sin(a)*.95,1.2+i*.35,Math.cos(a)*.95);refs.acc.add(sp);}}
   if(sk>=3){const h=P(G.torus,basic(s.orb),refs.acc,0,4.35,-.5,.42,.42,.35);h.rotation.x=PI/2;}}
@@ -1472,10 +1488,8 @@ function textTex(txt,w,h,font,fg,bg){const c=document.createElement('canvas');c.
 function setSpriteTex(s,t){if(s.material.map)s.material.map.dispose();s.material.map=t;s.material.needsUpdate=true;}
 function newSprite(y,sx,sy){const s=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthTest:false,fog:false}));s.position.y=y;s.scale.set(sx,sy,1);s.renderOrder=5;return s;}
 const myBubble=newSprite(5.4,7,2.2);myBubble.visible=false;hero.add(myBubble);let myBubT=0;
-function heroMesh(hue){const g=new THREE.Group();const robe=lam({map:T.robe(1),color:new THREE.Color().setHSL(hue,.55,.72)});
-  P(G.cone,robe,g,0,.85,0,.75,1.7,.75);P(G.sph,M('skin',()=>lam({color:0xffc8a0})),g,0,1.95,0,.38);P(G.cone,lam({color:0xeeeeff}),g,0,1.62,.24,.33,.7,.33).rotation.x=PI;
-  const hat=P(G.cone,robe,g,0,2.95,-.12,.55,1.7,.55);hat.rotation.x=-.35;P(G.cyl,robe,g,0,2.15,0,.88,.08,.88);P(G.cyl,M('staff',()=>lam({color:0x5a3a20})),g,.6,1.1,.3,.05,2.3,.05);
-  const c=new THREE.Color().setHSL(hue,.9,.65);const orb=glow(c.getHex(),1.3);orb.position.set(.6,2.3,.3);g.add(orb);g.userData.refs={robe,orb};scene.add(g);return g;}
+function heroMesh(hue){const g=new THREE.Group();const robe=lam({map:T.robe(1),color:new THREE.Color().setHSL(hue,.55,.72)});const B=buildChar(g,robe);
+  const c=new THREE.Color().setHSL(hue,.9,.65);const orb=glow(c.getHex(),1.3);orb.position.set(0,1.35,0);B.grip.add(orb);g.userData.refs={robe,orb,grip:B.grip};scene.add(g);return g;}
 function newRemote(p,pr){const hue=isFinite(+pr.h)?+pr.h:.5;const g=heroMesh(hue);const tag=newSprite(4.4,5,1.25);g.add(tag);const bub=newSprite(5.6,7,2.2);bub.visible=false;g.add(bub);
   const cl=isCls(pr.cl)?pr.cl:'magier',sk=Math.max(0,Math.min(3,pr.sk|0));dressHero(g,g.userData.refs,cl,sk);
   const r={g,tag,bub,hue,cl,sk,tp:new THREE.Vector3(pr.p[0],pr.p[1],pr.p[2]),rot:pr.p[3],name:'Zauberer',lv:1,rg:'',sayT:pr.say&&pr.say.t,shN:pr.sh&&pr.sh.n,emT:pr.em&&pr.em.t,em:null,bubT:0,guest:p.guest};
@@ -1505,11 +1519,16 @@ function doEmote(k){if(state!=='play')return;emote={k,t:Date.now()};localEm={k,s
   if(k===5)danceTune();
   if(k===6){setBubble(myBubble,'UwU ♡');myBubT=time+3;uwuFx(hero);beep(1320,.08,'sine',.05);setTimeout(()=>beep(1760,.12,'sine',.05),110);}}
 function uwuFx(g){for(let i=0;i<3;i++)setTimeout(()=>burst(g.position.clone().add(new THREE.Vector3(R(-.6,.6),3+R(0,.8),R(-.6,.6))),i%2?0xff7ab0:0xffb0e0),i*180);}
-function animEmote(g,em,t){const a=time-em.s,k=em.k;if(a>(EMDUR[k]||2.6)){earHands(g,false);return false;}
-  if(k===1)g.rotation.z=Math.sin(a*12)*.18;else if(k===2){g.rotation.y+=a*9;g.position.y+=Math.abs(Math.sin(a*9))*.6;}else if(k===3)g.rotation.x=Math.min(.6,a*3)*(a<2?1:Math.max(0,(2.6-a)/.6));else if(k===4)g.position.y+=Math.abs(Math.sin(a*7))*1.3;
-  else if(k===5){/* Caramell-Tanz: Hände als Ohren über dem Kopf, Hüfte im Takt hin und her */const b=a*165/60*PI,s=Math.sin(b);g.rotation.z=s*.22;g.rotation.y+=Math.sin(b)*.45;g.position.y+=Math.abs(Math.cos(b))*.32;
-    const e=earHands(g,true);for(const h of e.children)h.position.y=3.05+Math.max(0,Math.sin(b*2+(h.userData.s>0?0:PI)))*.18;}
-  else if(k===6){const env=Math.min(1,a*4)*Math.min(1,(3-a)*2);g.rotation.z=.28*env;g.position.y+=Math.abs(Math.sin(a*10))*.25*env;}
+function animEmote(g,em,t){const a=time-em.s,k=em.k,B=g.userData.body;if(a>(EMDUR[k]||2.6)){earHands(g,false);return false;}
+  if(k===1){if(B){B.armL.rotation.set(0,0,-2.55+Math.sin(a*12)*.3);B.foreL.rotation.set(0,0,-.3);}else g.rotation.z=Math.sin(a*12)*.18;}
+  else if(k===2){g.rotation.y+=a*9;g.position.y+=Math.abs(Math.sin(a*9))*.6;if(B){B.armL.rotation.set(0,0,-1.4);B.armR.rotation.set(-.45,0,1.4);}}
+  else if(k===3){g.rotation.x=Math.min(.6,a*3)*(a<2?1:Math.max(0,(2.6-a)/.6));if(B){B.armL.rotation.set(.3,0,-.1);}}
+  else if(k===4){g.position.y+=Math.abs(Math.sin(a*7))*1.3;if(B){const w=Math.sin(a*14)*.15;B.armL.rotation.set(0,0,-2.8+w);B.foreL.rotation.set(0,0,0);B.armR.rotation.set(0,0,2.8-w);B.foreR.rotation.set(0,0,0);B.grip.rotation.set(0,0,0);}}
+  else if(k===5){/* Caramell-Tanz: Hände als Ohren über dem Kopf, Hüfte im Takt hin und her */const b=a*165/60*PI,s=Math.sin(b);g.rotation.z=s*.22;g.rotation.y+=s*.45;g.position.y+=Math.abs(Math.cos(b))*.32;
+    if(B){const w=Math.sin(b*2)*.12;B.armL.rotation.set(0,0,-2.55+w);B.foreL.rotation.set(0,0,-1.05);B.armR.rotation.set(0,0,2.55-w);B.foreR.rotation.set(0,0,1.05);B.grip.rotation.set(0,0,0);B.legL.rotation.x=Math.max(0,s)*.5;B.legR.rotation.x=Math.max(0,-s)*.5;}
+    else{const e=earHands(g,true);for(const h of e.children)h.position.y=3.05+Math.max(0,Math.sin(b*2+(h.userData.s>0?0:PI)))*.18;}}
+  else if(k===6){const env=Math.min(1,a*4)*Math.min(1,(3-a)*2);g.rotation.z=.28*env;g.position.y+=Math.abs(Math.sin(a*10))*.25*env;
+    if(B){B.armL.rotation.set(-1.1*env,0,-.35*env);B.foreL.rotation.set(-1.5*env,0,0);}}
   return true;}
 addEventListener('keydown',e=>{if(state!=='play'||e.repeat)return;if(e.code==='Enter'||e.code==='KeyT'){e.preventDefault();openChat();}else{const m=/^Digit([1-6])$/.exec(e.code);if(m)doEmote(+m[1]);}});
 
@@ -1585,14 +1604,14 @@ function mpTick(dt){
     const hp=Math.max(0,Math.min(20,pr.hp|0));if(hp!==r.hp){r.hp=hp;setTag(r);}
     if(pr.em&&pr.em.t!==r.emT){r.emT=pr.em.t;const k=pr.em.k|0;if(k>=1&&k<=6){r.em={k,s:time};if(k===6){setBubble(r.bub,"UwU ♡");r.bubT=time+3;uwuFx(r.g);}if(Math.hypot(r.tp.x-player.pos.x,r.tp.z-player.pos.z)<40)feed(`${r.name} ${EMN[k]}`,'#7dffea');}}}
   for(const[k,r]of remotes)if(!seenP.has(k)){scene.remove(r.g);remotes.delete(k);addChat(null,`${r.name} hat die Welt verlassen`);updOnline();}
-  for(const r of remotes.values()){r.g.position.lerp(r.tp,Math.min(1,dt*10));let d=r.rot-r.g.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));r.g.rotation.y+=d*Math.min(1,dt*10);
+  for(const r of remotes.values()){const ox=r.g.position.x,oz=r.g.position.z;r.g.position.lerp(r.tp,Math.min(1,dt*10));animBody(r.g,Math.hypot(r.g.position.x-ox,r.g.position.z-oz)/Math.max(dt,1e-3),dt);let d=r.rot-r.g.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));r.g.rotation.y+=d*Math.min(1,dt*10);
     r.g.rotation.x=r.g.rotation.z=0;if(r.em&&!animEmote(r.g,r.em))r.em=null;if(r.bub.visible&&time>r.bubT)r.bub.visible=false;r.g.visible=Math.hypot(r.tp.x-player.pos.x,r.tp.z-player.pos.z)<260;}
   onlineTxtT-=dt;if(onlineTxtT<0){onlineTxtT=1;updOnline();}}
 if(touchMode){let ek=0;$('bEmote').addEventListener('contextmenu',e=>{e.preventDefault();castHeal();});$('bChat').addEventListener('pointerdown',e=>{e.stopPropagation();openChat();});$('bEmote').addEventListener('pointerdown',e=>{e.stopPropagation();ek=ek%6+1;doEmote(ek);});}
 
 /* ================= SPIEL-LOG / UPDATES ================= */
 const CHANGELOG=[
- {v:'1.5',t:'Rucksack, Skins und Tanz',d:'24.11.2026',items:['Die große Stadt heißt jetzt Butterbühl.','Die Minikarte zeigt Quest-NPCs (! und ?) nur noch, wenn sie in der Nähe sind.','Neues Inventar (I) im Rucksack-Stil: Gegenstände belegen je nach Größe mehrere Felder, Ausrüstungspuppe mit vier Plätzen, Infofeld mit Vergleich, Gewicht und Tragelast. Ziehen und Ablegen zum Anlegen, Verkaufen oder Wegwerfen, Doppelklick zum Anlegen oder Trinken.','Skins: vier pro Klasse, frei auf Stufe 1, 5, 10 und 20. Auswahl im Inventar unter Garderobe. Höhere Skins leuchten und haben einen Heiligenschein. Mitspieler sehen deinen Skin.','Kameraansichten mit Taste V: Normal, Weit, Schulter, Ego-Sicht und Von oben.','Einstellungen (P): Grafikstufe Retro, Ausgewogen oder Scharf. Standard ist jetzt Ausgewogen mit weniger Wackeln und schärferem Bild.','Neue Gesten: 5 Caramell-Tanz mit Musik, 6 UwU mit Herzchen.']},
+ {v:'1.5',t:'Rucksack, Skins und Tanz',d:'24.11.2026',items:['Einstellungen (P) haben jetzt einen Tab „Steuerung“ mit allen Tasten, Kamera-Empfindlichkeit und Y-Achse umkehren.','Detailliertere Figuren: Beine mit Stiefeln, Oberkörper mit Gürtel, Arme mit Ellbogen und Händen, Augen. Fennick hält den Stab jetzt in der Hand, und beim Laufen schwingen Arme und Beine. Gesten wie Winken, Jubeln, Caramell-Tanz und UwU nutzen die Arme.','Die große Stadt heißt jetzt Butterbühl.','Die Minikarte zeigt Quest-NPCs (! und ?) nur noch, wenn sie in der Nähe sind.','Neues Inventar (I) im Rucksack-Stil: Gegenstände belegen je nach Größe mehrere Felder, Ausrüstungspuppe mit vier Plätzen, Infofeld mit Vergleich, Gewicht und Tragelast. Ziehen und Ablegen zum Anlegen, Verkaufen oder Wegwerfen, Doppelklick zum Anlegen oder Trinken.','Skins: vier pro Klasse, frei auf Stufe 1, 5, 10 und 20. Auswahl im Inventar unter Garderobe. Höhere Skins leuchten und haben einen Heiligenschein. Mitspieler sehen deinen Skin.','Kameraansichten mit Taste V: Normal, Weit, Schulter, Ego-Sicht und Von oben.','Einstellungen (P): Grafikstufe Retro, Ausgewogen oder Scharf. Standard ist jetzt Ausgewogen mit weniger Wackeln und schärferem Bild.','Neue Gesten: 5 Caramell-Tanz mit Musik, 6 UwU mit Herzchen.']},
  {v:'1.4',t:'Wähle deinen Weg',d:'24.11.2026',items:['Neuer Skilltree (K): drei Zweige mit je vier Stufen, Verbindungslinien und neuen Skills wie Glutblut, Inferno, Lebensquell, Rindenhaut, Schildmeister, Sternschnuppe und den Spitzen Sonnenzorn, Ewiger Wald und Kosmos.','Quests verfolgen: Im Questbuch (L) wählst du eine Quest, dann zeigen Karte, Minikarte und die Anzeige oben rechts nur noch ihre Ziele.','NPCs mit Aufträgen stehen auf der großen Karte mit Abzeichen (! neu, ? abgeben) und Namen, auf der Minikarte auch am Rand.','Eigener Name: bei der Klassenwahl oder unter online. Mitspieler sehen ihn über deinem Kopf, auf der Karte und im Chat.','Tag oder Nacht per Abstimmung: Klick auf die Uhr. Stimmt mehr als die Hälfte der Spieler zu, wechselt die Tageszeit für alle.','Karte und Minikarte zeigen Mitspieler als Pfeil in ihrer Klassenfarbe mit Blickrichtung, auf der großen Karte mit Name, Klasse und Stufe. Ein Klick auf einen Mitspieler bringt dich zu ihm. Ist jemand außerhalb der Minikarte, zeigt ein Pfeil am Rand in seine Richtung.','Die Kamera geht nicht mehr durch Häuser, Mauern, Türme und Hügel. Sie rückt automatisch näher an Fennick heran.','Neues Spiel startet jetzt mit einer Klassenwahl: Sternenmagier, Feuerhexer, Sonnenritter, Mooshüter oder Glücksstrolch.','Jede Klasse hat eigene Herzen, Stärken und Schwächen. Manche können ihren Spezialzauber schon ab Stufe 1.','Fennick sieht je nach Klasse anders aus: andere Robenfarbe, eigener Zauberblitz, Schild, Blätterkranz, Umhang oder Flammenhut.','Alte Spielstände spielen als Sternenmagier weiter.','Klasse wechseln mit Taste O (oder im Talentfenster): Auf Stufe 10, 20, 30 … ist ein Wechsel kostenlos, sonst kostet er Gold. Stufe, Talente, Ausrüstung und Quests bleiben erhalten.','Mehrspieler: Andere sehen deine Klasse an Robe, Zubehör, Zauberfarbe und am Symbol über deinem Namen. Auch die Spielerliste zeigt die Klasse.']},
  {v:'1.3',t:'Höfe, Häfen und Halunken',d:'24.11.2026',items:['Sieben neue Quests: Schafe zählen, Goldene Kürbisse, Steckbriefe, Signalfeuer, Das dunkle Leuchtfeuer, Die Glitzermine und Wespenplage.','Vier gesuchte Schurken mit Namen, Lebensbalken und Beute: Räuberhauptmann Grimmbart, Glutkönig Funkenzahn, Sumpfhexer Quaxl und Brummfrost der Eisyeti.','Neue Orte: das Fischerdorf Krötenhafen mit Stegen und Booten, der Glimmerturm (ein Leuchtturm), die Glitzermine, eine Karawanserei, der Gasthof „Zur Krummen Gabel“ und die Uralte Eiche, unter der man rasten kann.','Sieben neue Höfe: Apfelhof mit Obstgarten, Kürbishof, Schäferei mit Weide, Weinberg, Imkerei mit Bienenstöcken, Kuhhof und Knollenhof.','Tiere: Schafe, Kühe und Hühner laufen auf Weiden und durch die Dörfer.','Fünf neue Sonnenschreine für die Schnellreise und 13 neue Orte auf der Weltkarte.']},
  {v:'1.2',t:'Das große Land',d:'24.11.2026',items:['Die ganze Welt ist fünfmal so groß: Alle Regionen, Wege und Orte sind mitgewachsen, mit Hügeln, Bergen, weiten Wäldern und einem breiten Fluss.','Butterbühl ist jetzt eine echte Großstadt: über tausend schiefe Häuser, Straßenraster, Ringstraße, Stadtmauer mit 16 Türmen und vier Torburgen, Spaziergänger in den Gassen.','Neue Stadtviertel: Kathedrale mit Friedhof, Sternenakademie mit Turm, Arena der Träume, Stadtpark mit Teich und Pavillon, Kornmarkt, dazu Rathaus, Gasthaus und Schmiede am Marktplatz.','Neue Region hinter der Leuchtschlucht im Nordwesten: Die Frostzacken, verschneite Berge mit Frostkobolden, einem Eremiten und Schneefall.','Neue Quests: Post für Butterbühl (Postbote Pips), Sternsplitter (Astronomin Vega) und die Arena der Träume mit Wellenkämpfen in immer schwereren Runden (Arenameister Brakus).','Reisebesen: bei Besenmacherin Ruthilde am Kornmarkt kaufen, mit B aufsitzen und gut zweieinhalbmal so schnell reisen.','Drei neue Weiler (Krummbach, Wackelfurt, Hinkelhain), mehr Höfe, Ruinen, Lager, Wachtürme, Seen, 80 Truhen und 15 Sonnenschreine für die Schnellreise.','Weltkarte mit stärkerem Zoom: Nah herangezoomt siehst du jedes Haus und jede Gasse der Stadt.','Die Welt wird für alle gleich erzeugt: Mitspieler sehen dieselbe Stadt.','Alte Spielstände laufen weiter, deine Position wird auf die neue Weltgröße umgerechnet.']},
@@ -2484,11 +2503,32 @@ function renderInfo(){const box=$('skInfo');if(!box)return;box.textContent='';co
   box.appendChild(row);}
 
 /* ===== Einstellungen: Grafik und Kamera ===== */
-function renderSet(){const L=$('setL');L.textContent='';
+function renderSet(){const L=$('setL');L.textContent='';const tb=el('div','set-tabs');[['gfx','Grafik & Kamera'],['ctl','Steuerung']].forEach(([k,n])=>{const b=el('button','set-tab'+(setTab===k?' on':''),n);b.type='button';b.setAttribute('aria-pressed',setTab===k);b.onclick=()=>{setTab=k;renderSet();};tb.appendChild(b);});L.appendChild(tb);if(setTab==='ctl'){renderCtl(L);return;}
   L.appendChild(el('h3','','Grafik'));L.appendChild(el('p','sk-help','Weniger Wackeln und mehr Auflösung sehen ruhiger aus, brauchen aber mehr Leistung. Beim Ändern lädt das Spiel kurz neu, dein Spielstand bleibt erhalten.'));
   const gr=el('div','row2');[['Retro','Starkes PS1-Wackeln, niedrige Auflösung, am schnellsten'],['Ausgewogen','Leichtes Wackeln, schärfer (Standard)'],['Scharf','Kein Wackeln, volle Auflösung, braucht am meisten Leistung']].forEach(([n,d],i)=>{const b=el('button','opt'+(GFX===i?' on':''));b.type='button';b.appendChild(el('b','',n));b.appendChild(el('small','',d));
     b.onclick=()=>{if(i===GFX)return;try{localStorage.setItem('sf-gfx',String(i));}catch(e){}if(state!=='title')save();location.reload();};gr.appendChild(b);});L.appendChild(gr);
   L.appendChild(el('h3','','Kamera (Taste V)'));const cr=el('div','row2');CAMN.forEach((n,i)=>{const b=el('button','opt'+(camMode===i?' on':''));b.type='button';b.appendChild(el('b','',n));b.appendChild(el('small','',['Hinter Fennick','Weiter Überblick','Nah über der Schulter','Durch Fennicks Augen','Von hoch oben'][i]));b.onclick=()=>{setCamMode(i);renderSet();};cr.appendChild(b);});L.appendChild(cr);}
+/* Einstellungen: Tab Steuerung (Tastenbelegung, Maus-Empfindlichkeit, Y-Achse) */
+let setTab='gfx',sensV=null,invyV=null;
+function SENS(){if(sensV===null){try{const v=parseFloat(localStorage.getItem('sf-sens'));sensV=isFinite(v)?Math.max(.3,Math.min(2.5,v)):1;}catch(e){sensV=1;}}return sensV;}
+function INVY(){if(invyV===null){try{invyV=localStorage.getItem('sf-invy')==='1';}catch(e){invyV=false;}}return invyV;}
+const CTL=[
+ ['Bewegung',[['W A S D / Pfeiltasten','Laufen'],['Umschalt (Shift)','Rennen'],['Leertaste','Springen'],['Q','Kamera drehen'],['B','Reisebesen auf- und absteigen'],['Maus ziehen','Kamera schwenken'],['Mausrad','Zoom']]],
+ ['Kampf',[['Klick / F / J','Blitz (frei)'],['R','Feuerball'],['C','Frostring'],['X','Sternenschild'],['H','Heiltrank trinken'],['G','Freunde in der Nähe heilen']]],
+ ['Menüs',[['I','Inventar'],['K','Skilltree'],['L','Questbuch (Quest verfolgen)'],['M','Weltkarte'],['O','Klasse wechseln'],['P','Einstellungen'],['U','Updates'],['Esc','Menü schließen']]],
+ ['Kamera',[['V','Kameraansicht wechseln: Normal, Weit, Schulter, Ego-Sicht, Von oben']]],
+ ['Mehrspieler',[['Enter / T','Chat'],['Klick auf die Uhr','Abstimmung Tag oder Nacht'],['Klick auf „online“','Spielerliste, Name ändern, Hinreisen']]],
+ ['Gesten',[['1','Winken'],['2','Tanzen'],['3','Verbeugen'],['4','Jubeln'],['5','Caramell-Tanz'],['6','UwU']]],
+ ['Sprechen',[['E','Mit NPCs sprechen, Dinge benutzen'],['Klick / Enter','Dialog weiter']]]];
+function renderCtl(L){
+  L.appendChild(el('h3','','Maus'));const sr=el('div','ctl-row');const lb=el('label','','Kamera-Empfindlichkeit');lb.htmlFor='sensR';const rg=el('input');rg.type='range';rg.id='sensR';rg.min='0.3';rg.max='2.5';rg.step='0.1';rg.value=String(SENS());
+  const out=el('b','',SENS().toFixed(1)+'×');rg.oninput=()=>{sensV=+rg.value;out.textContent=sensV.toFixed(1)+'×';try{localStorage.setItem('sf-sens',String(sensV));}catch(e){}};
+  for(const ev of['keydown','keyup'])rg.addEventListener(ev,e=>e.stopPropagation());sr.append(lb,rg,out);L.appendChild(sr);
+  const ir=el('label','ctl-row ctl-chk');const cb=el('input');cb.type='checkbox';cb.checked=INVY();cb.onchange=()=>{invyV=cb.checked;try{localStorage.setItem('sf-invy',cb.checked?'1':'0');}catch(e){}};ir.append(cb,el('span','','Kamera hoch/runter umkehren (Y-Achse)'));L.appendChild(ir);
+  L.appendChild(el('h3','','Tastenbelegung'));const grid=el('div','ctl-grid');
+  for(const[cat,rows]of CTL){const box=el('div','ctl-box');box.appendChild(el('h4','',cat));const dl=el('dl');for(const[k,d]of rows){const dt=el('dt');for(const part of k.split(' / ')){if(dt.childNodes.length)dt.appendChild(document.createTextNode(' / '));dt.appendChild(el('kbd','',part));}dl.append(dt,el('dd','',d));}box.appendChild(dl);grid.appendChild(box);}
+  L.appendChild(grid);
+  L.appendChild(el('p','sk-help','Auf dem Handy: linker Stick zum Laufen, Wischen auf dem Bildschirm dreht die Kamera, die Knöpfe rechts zaubern. Lange auf „Geste“ drücken heilt Freunde.'));}
 $('setBtn').onclick=()=>openMenu('setP',renderSet);$('setX').onclick=()=>closeMenu('setP');
 addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='Escape'&&!$('setP').hidden)closeMenu('setP');else if(e.code==='KeyP'&&(state==='play'||!$('setP').hidden))openMenu('setP',renderSet);});
 
