@@ -309,8 +309,13 @@ const CL=()=>CLS[player.cls]||CLS.magier,isCls=k=>typeof k==='string'&&Object.pr
 let enemies=[],bolts=[],shots=[],pickups=[],props=[],inter=[],smoke=[],flick=[],portal=null,boss=null,sparkCount=0,lightning=3,hemi=null;
 
 /* ---------- Gelände ---------- */
+/* Bodenhöhe genau wie das sichtbare Gelände-Netz (10-m-Raster, dieselben Dreiecke), damit niemand im Boden versinkt */
+let TH=null;
+function Hm(x,z){const h=H(x,z);if(!isFinite(h)||!TH)return h;const fx=(x-TH.x0)/TH.cs,fz=(z-TH.z0)/TH.cs,ix=Math.floor(fx),iz=Math.floor(fz),n=TH.n;if(ix<0||iz<0||ix>=n-1||iz>=n-1)return h;
+  const u=fx-ix,v=fz-iz,a=TH.a,h00=a[ix+n*iz],h10=a[ix+1+n*iz],h01=a[ix+n*(iz+1)],h11=a[ix+1+n*(iz+1)];if(h00<=-40||h10<=-40||h01<=-40||h11<=-40)return h;return u+v<=1?h00+(h10-h00)*u+(h01-h00)*v:h11+(h01-h11)*(1-u)+(h10-h11)*(1-v);}
 function terrain(w,d,cx,cz,sx,sz,hfn,mat,tint){const g=new THREE.PlaneGeometry(w,d,sx,sz);g.rotateX(-PI/2);const p=g.attributes.position;const col=new Float32Array(p.count*3);const c=new THREE.Color();
-  for(let i=0;i<p.count;i++){const x=p.getX(i)+cx,z=p.getZ(i)+cz;let y=hfn(x,z);if(!isFinite(y))y=-40;p.setY(i,y);c.setRGB(1,1,1);if(tint)tint(x,z,y,c);col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b;}
+  const keep=w===3000&&sx===300?(TH={a:new Float32Array(p.count),n:sx+1,cs:w/sx,x0:cx-w/2,z0:cz-d/2}):null;
+  for(let i=0;i<p.count;i++){const x=p.getX(i)+cx,z=p.getZ(i)+cz;let y=hfn(x,z);if(!isFinite(y))y=-40;p.setY(i,y);if(keep)keep.a[i]=y;c.setRGB(1,1,1);if(tint)tint(x,z,y,c);col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b;}
   g.setAttribute('color',new THREE.BufferAttribute(col,3));g.computeVertexNormals();const m=new THREE.Mesh(g,mat);m.position.set(cx,0,cz);world.add(m);return m;}
 function strip(wd,z0,z1,xf,hfn,mat,lift=.08){const len=Math.abs(z1-z0),n=Math.ceil(len/2);const g=new THREE.PlaneGeometry(wd,len,2,n);g.rotateX(-PI/2);const p=g.attributes.position;
   for(let i=0;i<p.count;i++){const z=(z0+z1)/2+p.getZ(i),x=p.getX(i)+xf(z);const y=hfn(x,z);p.setXYZ(i,x,(isFinite(y)?y:0)+lift,z);}
@@ -437,7 +442,7 @@ function crookedHouse(x,z,rot,opts={}){const gy=L.ground(x,z);const g=new THREE.
   P(G.plane,M('door',()=>lam({color:0x3a1a0a})),g,0,1.2,d/2+.02,1.3,2.4);
   g.updateMatrixWorld(true);const sp=new THREE.Vector3(w*.28,h+rh*.95,d*.1);g.localToWorld(sp);
   if(!opts.noSmoke)for(let k=0;k<3;k++){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0xd8d0ff,transparent:true,depthWrite:false}));world.add(m);smoke.push({m,x:sp.x,y:sp.y,z:sp.z,o:k/3});}
-  props.push({x,z,r:opts.pr||Math.max(w,d)*.62});return {g,h:h+rh,w,d};}
+  props.push(opts.pr?{x,z,r:opts.pr}:{x,z,r:Math.hypot(w,d)/2,bw:w,bd:d,ry:rot,h:h+rh*.55});return {g,h:h+rh,w,d};}
 function mushroom(x,z,s,house){const gy=L.ground(x,z);const g=new THREE.Group();g.position.set(x,gy,z);g.rotation.z=R(-.1,.1);world.add(g);
   P(G.tap,M('stem',()=>lam({color:0xc8b898,emissive:0x1a1408})),g,0,1.6*s,0,.55*s,3.2*s,.55*s);
   const cap=P(G.cap,M('cap',()=>lam({map:T.mush(2,1),emissive:0x1a1250})),g,0,3.1*s,0,1.9*s,1.3*s,1.9*s);
@@ -1036,9 +1041,9 @@ let camCol=10.5,camHit=false,camDtPrev=0,camSnap=false;
 const CAMN=['Normal','Weit','Schulter','Ego-Sicht','Von oben'];let camMode=(()=>{try{return Math.max(0,Math.min(4,+localStorage.getItem('sf-cam')|0));}catch(e){return 0;}})();
 function setCamMode(m){camMode=((m%5)+5)%5;camSnap=true;try{localStorage.setItem('sf-cam',String(camMode));}catch(e){}toast('Kamera: '+CAMN[camMode]+' (V wechselt)');beep(600+camMode*80,.08,'triangle');}
 addEventListener('keydown',e=>{if(!e.repeat&&e.code==='KeyV'&&state==='play')setCamMode(camMode+1);});
-function camBlocked(x,y,z){const gy=H(x,z);if(isFinite(gy)&&y<gy+.4)return true;
+function camBlocked(x,y,z){const gy=Math.max(H(x,z),Hm(x,z));if(isFinite(gy)&&y<gy+.4)return true;
   const near=PG.get(Math.floor(x/PGC)*4096+Math.floor(z/PGC));
-  if(near)for(const o of near){if(o.r<1.3)continue;const dx=x-o.x,dz=z-o.z,rr=o.r+.35;if(dx*dx+dz*dz>rr*rr)continue;
+  if(near)for(const o of near){if(o.r<1.3)continue;const dx=x-o.x,dz=z-o.z,rr=o.r+.35;if(o.bw){const c=Math.cos(o.ry),s=Math.sin(o.ry);if(Math.abs(dx*c-dz*s)>o.bw/2+.35||Math.abs(dx*s+dz*c)>o.bd/2+.35)continue;}else if(dx*dx+dz*dz>rr*rr)continue;
     if(o.gy===undefined){const g=H(o.x,o.z);o.gy=isFinite(g)?g:0;}if(y<o.gy+(o.h||Math.max(4.5,o.r*1.9)))return true;}
   for(const k of blockers)if(x>k.x0-.3&&x<k.x1+.3&&z>k.z0-.3&&z<k.z1+.3&&y<(isFinite(gy)?gy:0)+14)return true;return false;}
 function camClip(by,want=camDist,pitch=camPitch,ox=0,oz=0){pgEnsure();const sx=Math.sin(camYaw)*Math.cos(pitch),sy=Math.sin(pitch),sz=Math.cos(camYaw)*Math.cos(pitch);
@@ -1085,9 +1090,12 @@ function hurt(n){if(player.inv>0||state!=='play')return;n=mitigate(n);if(n<=0){p
 const PG=new Map(),PGC=24;let pgN=-1,pgA=null;
 function pgEnsure(){if(pgA===props&&pgN===props.length)return;PG.clear();for(const o of props){const r=o.r+1.2;const i0=Math.floor((o.x-r)/PGC),i1=Math.floor((o.x+r)/PGC),j0=Math.floor((o.z-r)/PGC),j1=Math.floor((o.z+r)/PGC);
   for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const k=i*4096+j;let a=PG.get(k);if(!a)PG.set(k,a=[]);a.push(o);}}pgA=props;pgN=props.length;}
+/* Häuser als gedrehte Rechtecke: aus der nächsten Wand hinausschieben */
+function pushBox(p,o,dx,dz){const c=Math.cos(o.ry),s=Math.sin(o.ry),lx=dx*c-dz*s,lz=dx*s+dz*c,hx=o.bw/2+.55,hz=o.bd/2+.55;if(Math.abs(lx)>=hx||Math.abs(lz)>=hz)return;
+  let nx=lx,nz=lz;if(hx-Math.abs(lx)<hz-Math.abs(lz))nx=(lx<0?-1:1)*hx;else nz=(lz<0?-1:1)*hz;p.x=o.x+nx*c+nz*s;p.z=o.z-nx*s+nz*c;}
 function constrain(p){const b=WORLD.bounds;p.x=Math.max(b.x0,Math.min(b.x1,p.x));p.z=Math.max(b.z0,Math.min(b.z1,p.z));pgEnsure();
-  const near=PG.get(Math.floor(p.x/PGC)*4096+Math.floor(p.z/PGC));
-  if(near)for(const o of near){const dx=p.x-o.x,dz=p.z-o.z;if(Math.abs(dx)>o.r+1||Math.abs(dz)>o.r+1)continue;const d=Math.hypot(dx,dz);if(d<o.r+.6&&d>0){p.x=o.x+dx/d*(o.r+.6);p.z=o.z+dz/d*(o.r+.6);}}
+  for(let it=0;it<3;it++){const near=PG.get(Math.floor(p.x/PGC)*4096+Math.floor(p.z/PGC));
+  if(near)for(const o of near){const dx=p.x-o.x,dz=p.z-o.z;if(Math.abs(dx)>o.r+1||Math.abs(dz)>o.r+1)continue;if(o.bw){pushBox(p,o,dx,dz);continue;}const d=Math.hypot(dx,dz);if(d<o.r+.6&&d>0){p.x=o.x+dx/d*(o.r+.6);p.z=o.z+dz/d*(o.r+.6);}}}
   for(const k of blockers){if(p.x>k.x0&&p.x<k.x1&&p.z>k.z0&&p.z<k.z1){const o=[p.x-k.x0,k.x1-p.x,p.z-k.z0,k.z1-p.z],m=Math.min(...o);if(m===o[0])p.x=k.x0;else if(m===o[1])p.x=k.x1;else if(m===o[2])p.z=k.z0;else p.z=k.z1;}}}
 
 /* ---------- Gegner-KI ---------- */
@@ -1159,13 +1167,16 @@ const clock=new THREE.Clock();
 function update(dt){time+=dt;if(skyU)skyU.t.value=time;
   regT-=dt;if(regT<0){regT=.25;regionTarget();}applyMood(dt);
   if(state==='play'){
-    let ix=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+stick.x,iz=(keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.ArrowUp?1:0)+stick.y;
+    const px0=player.pos.x,pz0=player.pos.z,py0=player.pos.y;let ix=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+stick.x,iz=(keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.ArrowUp?1:0)+stick.y;
     if(keys.KeyQ)camYaw+=dt*2;const l=Math.hypot(ix,iz);if(l>1){ix/=l;iz/=l;}
     const fx_=-Math.sin(camYaw),fz=-Math.cos(camYaw),rx=Math.cos(camYaw),rz=-Math.sin(camYaw);const mx=rx*ix-fx_*iz,mz=rz*ix-fz*iz;const spd=speedMul()*(keys.ShiftLeft?13:9)*(riding?2.6:isWater(player.pos.x,player.pos.z)?.6:1);
     if(l>.1){player.pos.x+=mx*spd*dt;player.pos.z+=mz*spd*dt;const tr=Math.atan2(mx,mz);let dd=tr-player.rot;dd=Math.atan2(Math.sin(dd),Math.cos(dd));player.rot+=dd*Math.min(1,dt*12);}
-    constrain(player.pos);player.vy-=32*dt;player.pos.y+=player.vy*dt;const gy=H(player.pos.x,player.pos.z);
+    constrain(player.pos);player.vy-=32*dt;player.pos.y+=player.vy*dt;let gy=Hm(player.pos.x,player.pos.z);
+    /* Steilhang oder hohes Tempo: nicht durch den Boden rutschen. Kam man aus einer Grube, ist der Hang eine Wand. */
+    if(isFinite(gy)&&player.pos.y<gy-2.5){const g0=Hm(px0,pz0);if(isFinite(g0)){player.pos.y=gy;player.vy=Math.max(0,player.vy);}else{player.pos.x=px0;player.pos.z=pz0;gy=Hm(px0,pz0);}}
     if(isFinite(gy)&&player.vy<=0&&player.pos.y<=gy+(player.onGround?.7:0)&&player.pos.y>gy-2.5){player.pos.y=gy;player.vy=0;player.onGround=true;player.check.copy(player.pos);}else player.onGround=false;
     if(player.pos.y<-30){player.pos.copy(player.check);player.pos.z+=player.pos.z<-900?-1.5:1.5;player.pos.y+=2;player.vy=0;hurt(1);}
+    else if(isFinite(gy)&&player.pos.y<gy-6){player.pos.copy(player.check);player.pos.y+=.5;player.vy=0;toast('Hoppla, zurück auf festem Boden');}
     player.cool-=dt;player.inv-=dt;
     for(let i=pickups.length-1;i>=0;i--){const s=pickups[i];s.g.rotation.y+=dt*3;
       if(Math.hypot(s.g.position.x-player.pos.x,s.g.position.z-player.pos.z)<1.8&&Math.abs(s.g.position.y-player.pos.y-1)<2.6){world.remove(s.g);pickups.splice(i,1);beep(1200,.15,'sine',.08);
@@ -1207,7 +1218,7 @@ function update(dt){time+=dt;if(skyU)skyU.t.value=time;
   else{const want=cm===1?Math.min(34,camDist*1.9):cm===2?4.2:cm===4?40:camDist,pitch=cm===4?1.28:cm===2?Math.min(.7,camPitch*.8):camPitch;
     const sh=cm===2?1.15:0,ox=Math.cos(camYaw)*sh,oz=-Math.sin(camYaw)*sh,lyb=by+(cm===2?.35:0);
     const dist=state==='title'?want:camClip(lyb,want,pitch,ox,oz);let cx=player.pos.x+ox+Math.sin(camYaw)*dist*Math.cos(pitch),cz=player.pos.z+oz+Math.cos(camYaw)*dist*Math.cos(pitch),cy=lyb+Math.sin(pitch)*dist;
-    const g=H(cx,cz);if(isFinite(g))cy=Math.max(cy,g+1.2);if(player.pos.z>1205&&Math.abs(player.pos.x)<262)cz=Math.min(cz,1434);
+    const g=Math.max(H(cx,cz),Hm(cx,cz));if(isFinite(g))cy=Math.max(cy,g+1.2);if(player.pos.z>1205&&Math.abs(player.pos.x)<262)cz=Math.min(cz,1434);
     _v.set(cx,cy,cz);camera.position.lerp(_v,camHit||camSnap?1:Math.min(1,dt*8));camSnap=false;camera.lookAt(player.pos.x+ox,lyb,player.pos.z+oz);}
   if(WORLD.skyM)WORLD.skyM.position.copy(camera.position);mpTick(dt);rpgTick(dt);mapTick(dt);}
 function loop(){const dt=Math.min(.05,clock.getDelta());update(dt);renderer.render(scene,camera);requestAnimationFrame(loop);}
@@ -1649,7 +1660,7 @@ if(touchMode){let ek=0;$('bEmote').addEventListener('contextmenu',e=>{e.preventD
 
 /* ================= SPIEL-LOG / UPDATES ================= */
 const CHANGELOG=[
- {v:'1.5',t:'Rucksack, Skins und Tanz',d:'24.11.2026',items:['Jede Klasse hat jetzt ein eigenes Aussehen: Magier mit Spitzhut und Stab, Feuerhexer mit Hexenhut, roten Haaren, Zauberstab und Flamme in der Hand, Sonnenritter in Rüstung mit Helm, Schwert und Schild, Mooshüter mit Kapuze, Geweih und knorrigem Stab, Glücksstrolch mit Kapuze, Maske, Umhang und Dolch.','Einstellungen (P) haben einen Tab „Profil“ zum Ändern des Namens.','Einstellungen (P) haben jetzt einen Tab „Steuerung“ mit allen Tasten, Kamera-Empfindlichkeit und Y-Achse umkehren.','Detailliertere Figuren: Beine mit Stiefeln, Oberkörper mit Gürtel, Arme mit Ellbogen und Händen, Augen. Fennick hält den Stab jetzt in der Hand, und beim Laufen schwingen Arme und Beine. Gesten wie Winken, Jubeln, Caramell-Tanz und UwU nutzen die Arme.','Die große Stadt heißt jetzt Butterbühl.','Die Minikarte zeigt Quest-NPCs (! und ?) nur noch, wenn sie in der Nähe sind.','Neues Inventar (I) im Rucksack-Stil: Gegenstände belegen je nach Größe mehrere Felder, Ausrüstungspuppe mit vier Plätzen, Infofeld mit Vergleich, Gewicht und Tragelast. Ziehen und Ablegen zum Anlegen, Verkaufen oder Wegwerfen, Doppelklick zum Anlegen oder Trinken.','Skins: vier pro Klasse, frei auf Stufe 1, 5, 10 und 20. Auswahl im Inventar unter Garderobe. Höhere Skins leuchten und haben einen Heiligenschein. Mitspieler sehen deinen Skin.','Kameraansichten mit Taste V: Normal, Weit, Schulter, Ego-Sicht und Von oben.','Einstellungen (P): Grafikstufe Retro, Ausgewogen oder Scharf. Standard ist jetzt Ausgewogen mit weniger Wackeln und schärferem Bild.','Neue Gesten: 5 Caramell-Tanz mit Musik, 6 UwU mit Herzchen.']},
+ {v:'1.5',t:'Rucksack, Skins und Tanz',d:'24.11.2026',items:['Fehler behoben: Man fällt nicht mehr durch die Karte. Die Figur läuft jetzt genau auf dem sichtbaren Boden statt teilweise darin, rutscht an Steilhängen und mit dem Besen nicht mehr durch den Boden, und wer doch einmal unter den Boden gerät, wird sofort zurückgesetzt. Auch die Kamera bleibt über dem sichtbaren Gelände.','Häuser haben jetzt eine rechteckige Kollision: Man kann nicht mehr an den Ecken in Häuser hineinlaufen, und vor den Türen gibt es keine unsichtbaren Wände mehr.','Jede Klasse hat jetzt ein eigenes Aussehen: Magier mit Spitzhut und Stab, Feuerhexer mit Hexenhut, roten Haaren, Zauberstab und Flamme in der Hand, Sonnenritter in Rüstung mit Helm, Schwert und Schild, Mooshüter mit Kapuze, Geweih und knorrigem Stab, Glücksstrolch mit Kapuze, Maske, Umhang und Dolch.','Einstellungen (P) haben einen Tab „Profil“ zum Ändern des Namens.','Einstellungen (P) haben jetzt einen Tab „Steuerung“ mit allen Tasten, Kamera-Empfindlichkeit und Y-Achse umkehren.','Detailliertere Figuren: Beine mit Stiefeln, Oberkörper mit Gürtel, Arme mit Ellbogen und Händen, Augen. Fennick hält den Stab jetzt in der Hand, und beim Laufen schwingen Arme und Beine. Gesten wie Winken, Jubeln, Caramell-Tanz und UwU nutzen die Arme.','Die große Stadt heißt jetzt Butterbühl.','Die Minikarte zeigt Quest-NPCs (! und ?) nur noch, wenn sie in der Nähe sind.','Neues Inventar (I) im Rucksack-Stil: Gegenstände belegen je nach Größe mehrere Felder, Ausrüstungspuppe mit vier Plätzen, Infofeld mit Vergleich, Gewicht und Tragelast. Ziehen und Ablegen zum Anlegen, Verkaufen oder Wegwerfen, Doppelklick zum Anlegen oder Trinken.','Skins: vier pro Klasse, frei auf Stufe 1, 5, 10 und 20. Auswahl im Inventar unter Garderobe. Höhere Skins leuchten und haben einen Heiligenschein. Mitspieler sehen deinen Skin.','Kameraansichten mit Taste V: Normal, Weit, Schulter, Ego-Sicht und Von oben.','Einstellungen (P): Grafikstufe Retro, Ausgewogen oder Scharf. Standard ist jetzt Ausgewogen mit weniger Wackeln und schärferem Bild.','Neue Gesten: 5 Caramell-Tanz mit Musik, 6 UwU mit Herzchen.']},
  {v:'1.4',t:'Wähle deinen Weg',d:'24.11.2026',items:['Neuer Skilltree (K): drei Zweige mit je vier Stufen, Verbindungslinien und neuen Skills wie Glutblut, Inferno, Lebensquell, Rindenhaut, Schildmeister, Sternschnuppe und den Spitzen Sonnenzorn, Ewiger Wald und Kosmos.','Quests verfolgen: Im Questbuch (L) wählst du eine Quest, dann zeigen Karte, Minikarte und die Anzeige oben rechts nur noch ihre Ziele.','NPCs mit Aufträgen stehen auf der großen Karte mit Abzeichen (! neu, ? abgeben) und Namen, auf der Minikarte auch am Rand.','Eigener Name: bei der Klassenwahl oder unter online. Mitspieler sehen ihn über deinem Kopf, auf der Karte und im Chat.','Tag oder Nacht per Abstimmung: Klick auf die Uhr. Stimmt mehr als die Hälfte der Spieler zu, wechselt die Tageszeit für alle.','Karte und Minikarte zeigen Mitspieler als Pfeil in ihrer Klassenfarbe mit Blickrichtung, auf der großen Karte mit Name, Klasse und Stufe. Ein Klick auf einen Mitspieler bringt dich zu ihm. Ist jemand außerhalb der Minikarte, zeigt ein Pfeil am Rand in seine Richtung.','Die Kamera geht nicht mehr durch Häuser, Mauern, Türme und Hügel. Sie rückt automatisch näher an Fennick heran.','Neues Spiel startet jetzt mit einer Klassenwahl: Sternenmagier, Feuerhexer, Sonnenritter, Mooshüter oder Glücksstrolch.','Jede Klasse hat eigene Herzen, Stärken und Schwächen. Manche können ihren Spezialzauber schon ab Stufe 1.','Fennick sieht je nach Klasse anders aus: andere Robenfarbe, eigener Zauberblitz, Schild, Blätterkranz, Umhang oder Flammenhut.','Alte Spielstände spielen als Sternenmagier weiter.','Klasse wechseln mit Taste O (oder im Talentfenster): Auf Stufe 10, 20, 30 … ist ein Wechsel kostenlos, sonst kostet er Gold. Stufe, Talente, Ausrüstung und Quests bleiben erhalten.','Mehrspieler: Andere sehen deine Klasse an Robe, Zubehör, Zauberfarbe und am Symbol über deinem Namen. Auch die Spielerliste zeigt die Klasse.']},
  {v:'1.3',t:'Höfe, Häfen und Halunken',d:'24.11.2026',items:['Sieben neue Quests: Schafe zählen, Goldene Kürbisse, Steckbriefe, Signalfeuer, Das dunkle Leuchtfeuer, Die Glitzermine und Wespenplage.','Vier gesuchte Schurken mit Namen, Lebensbalken und Beute: Räuberhauptmann Grimmbart, Glutkönig Funkenzahn, Sumpfhexer Quaxl und Brummfrost der Eisyeti.','Neue Orte: das Fischerdorf Krötenhafen mit Stegen und Booten, der Glimmerturm (ein Leuchtturm), die Glitzermine, eine Karawanserei, der Gasthof „Zur Krummen Gabel“ und die Uralte Eiche, unter der man rasten kann.','Sieben neue Höfe: Apfelhof mit Obstgarten, Kürbishof, Schäferei mit Weide, Weinberg, Imkerei mit Bienenstöcken, Kuhhof und Knollenhof.','Tiere: Schafe, Kühe und Hühner laufen auf Weiden und durch die Dörfer.','Fünf neue Sonnenschreine für die Schnellreise und 13 neue Orte auf der Weltkarte.']},
  {v:'1.2',t:'Das große Land',d:'24.11.2026',items:['Die ganze Welt ist fünfmal so groß: Alle Regionen, Wege und Orte sind mitgewachsen, mit Hügeln, Bergen, weiten Wäldern und einem breiten Fluss.','Butterbühl ist jetzt eine echte Großstadt: über tausend schiefe Häuser, Straßenraster, Ringstraße, Stadtmauer mit 16 Türmen und vier Torburgen, Spaziergänger in den Gassen.','Neue Stadtviertel: Kathedrale mit Friedhof, Sternenakademie mit Turm, Arena der Träume, Stadtpark mit Teich und Pavillon, Kornmarkt, dazu Rathaus, Gasthaus und Schmiede am Marktplatz.','Neue Region hinter der Leuchtschlucht im Nordwesten: Die Frostzacken, verschneite Berge mit Frostkobolden, einem Eremiten und Schneefall.','Neue Quests: Post für Butterbühl (Postbote Pips), Sternsplitter (Astronomin Vega) und die Arena der Träume mit Wellenkämpfen in immer schwereren Runden (Arenameister Brakus).','Reisebesen: bei Besenmacherin Ruthilde am Kornmarkt kaufen, mit B aufsitzen und gut zweieinhalbmal so schnell reisen.','Drei neue Weiler (Krummbach, Wackelfurt, Hinkelhain), mehr Höfe, Ruinen, Lager, Wachtürme, Seen, 80 Truhen und 15 Sonnenschreine für die Schnellreise.','Weltkarte mit stärkerem Zoom: Nah herangezoomt siehst du jedes Haus und jede Gasse der Stadt.','Die Welt wird für alle gleich erzeugt: Mitspieler sehen dieselbe Stadt.','Alte Spielstände laufen weiter, deine Position wird auf die neue Weltgröße umgerechnet.']},
@@ -1949,7 +1960,7 @@ function cityHouse(x,z,ry,o){const gy=H(x,z),gm=bgroup(x,gy-.3,z,0,ry,R(-.07,.07
     for(const sx of[-1,1])bpart('hwin',G.plane,win,gm,sx*w*.27,h+1.4,oz+d*k/2+.03,.9,1.1,1);h+=2.8;}
   const rh=R(3.5,6.5),rs=Math.max(w,d)*.8;bpart('hr'+rk,G.cone4,roof,gm,0,h+rh/2,0,rs,rh,rs,0,PI/4,R(-.1,.1));
   bpart('hch',G.box,M('chim',()=>lam({map:T.stone(1,2)})),gm,w*.28,h+rh*.55,d*.1,.9,rh*.8,.9);
-  props.push({x,z,r:o.pr||(w+d)/4,h:h+rh*.55});MAPH.push([x,z,(w+d)/4]);
+  props.push(o.pr?{x,z,r:o.pr,h:h+rh*.55}:{x,z,r:Math.hypot(w,d)/2,bw:w,bd:d,ry,h:h+rh*.55});MAPH.push([x,z,(w+d)/4]);
   return{top:new THREE.Vector3(w*.28,h+rh*.95,d*.1).applyMatrix4(gm)};}
 function roofRect(par,mat,x,y,z,w,h,d){const o=new THREE.Group();o.position.set(x,y,z);o.scale.set(w*.78,h,d*.78);par.add(o);const m=P(G.cone4,mat,o,0,0,0,1,1,1);m.rotation.y=PI/4;return o;}
 function chimSmoke(p){for(let k=0;k<3;k++){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0xd8d0ff,transparent:true,depthWrite:false}));world.add(m);smoke.push({m,x:p.x,y:p.y,z:p.z,o:k/3});}}
