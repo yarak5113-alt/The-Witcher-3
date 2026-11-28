@@ -196,7 +196,7 @@ button.big:hover,button.big:focus-visible{background:#ff5a2e;outline:2px solid v
   <button class="pill" id="updTitle" type="button"><span id="verTag">Version</span> · Was ist neu? <b class="updNew" hidden>Neu</b></button>
 </div>
 <div class="screen" id="clsS" hidden><h1 style="font-size:clamp(28px,5vw,46px)">Wähle deine Klasse</h1><p>Fennick hat die Zauberschule gerade abgeschlossen. Welchen Weg hat er gewählt?</p><input id="nameI" maxlength="20" placeholder="Dein Name (optional, für Mitspieler)" aria-label="Dein Name"><div id="clsL"></div><p id="clsWarn" hidden style="font-size:14px;color:#ffb0a0">Achtung: Ein neues Spiel überschreibt deinen alten Spielstand.</p><button class="pill" id="clsBack" type="button">Zurück</button></div>
-<div class="screen" id="end" hidden><h1>Die Sonne lächelt</h1><p>Alle Träume sind heimgekehrt. Sol Glutbart streckt die goldenen Beine und spaziert lachend über den Himmel. Das Blutrot verblasst, Knorz traut sich aus dem Pilz, und Sir Morwen hängt sein Schwert an den Nagel. Die Welt gehört dir: Erkunde sie weiter, erledige offene Aufträge, oder ruh dich am Brunnen aus.</p><button class="big" id="freeBtn">Weiter erkunden</button></div>
+<div class="screen" id="end" hidden><h1>Die Sonne lächelt</h1><p>Alle Träume sind heimgekehrt. Sol Glutbart streckt die goldenen Beine und spaziert lachend über den Himmel. Das Blutrot verblasst, Knorz traut sich aus dem Pilz, und Sir Morwen hängt sein Schwert an den Nagel. Die Welt gehört dir: Erkunde sie weiter, erledige offene Aufträge, oder ruh dich am Brunnen aus. Doch im Südosten flackert ein violettes Licht über einer alten Gruft … Sprich noch einmal mit Sol Glutbart.</p><button class="big" id="freeBtn">Weiter erkunden</button></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -222,7 +222,12 @@ addEventListener('resize',resize);resize();
 const texCache={};
 function tex(key,w,h,draw,rx=1,ry=rx){
   if(!texCache[key]){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);texCache[key]=c;}
-  const t=new THREE.CanvasTexture(texCache[key]);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.magFilter=THREE.NearestFilter;if(GFX)t.anisotropy=Math.min(GFX*4,renderer.capabilities.getMaxAnisotropy());return t;}
+  const t=new THREE.CanvasTexture(texCache[key]);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.magFilter=THREE.NearestFilter;if(GFX)t.anisotropy=Math.min(GFX*4,renderer.capabilities.getMaxAnisotropy());
+  if(TEXPNG[key]){(texUse[key]=texUse[key]||[]).push(t);texPng(key);}return t;}
+/* In Blender gebackene Reliefs (models/tex/*.png) ersetzen die gezeichneten Texturen, sobald sie geladen sind */
+const TEXPNG={wallA:1,wallB:1,wallC:1,wallD:1,roofR:1,roofT:1,roofP:1,cobble:1,stone:1,dark:1,hall:1,bark:1,iron:1,gold:1},texUse={};
+function texPng(key){if(TEXPNG[key]!==1||location.protocol==='file:')return;TEXPNG[key]=2;const im=new Image();
+  im.onload=()=>{const c=texCache[key];c.width=im.width;c.height=im.height;c.getContext('2d').drawImage(im,0,0);for(const t of texUse[key])t.needsUpdate=true;};im.src='models/tex/'+key+'.png';}
 function mottle(base,spots,n,r0,r1,a=.6){return (g,w,h)=>{g.fillStyle=base;g.fillRect(0,0,w,h);
   for(let i=0;i<n;i++){g.globalAlpha=a*Math.random()+.2;g.fillStyle=spots[i%spots.length];const x=R(0,w),y=R(0,h),r=R(r0,r1),e=R(.6,1),ro=R(0,3);
     for(const dx of[-w,0,w])for(const dy of[-h,0,h]){g.beginPath();g.ellipse(x+dx,y+dy,r,r*e,ro,0,7);g.fill();}}g.globalAlpha=1;};}
@@ -352,6 +357,16 @@ function buildCharGLB(g,robe,cls){const root=CHARGLB[cls].clone(true),d=CHAR_DIM
     if(o.isMesh&&o.material.name==='robe'){/* Robe übernimmt die Skin-/Spielerfarbe: gleiche Color-Instanz wie refs.robe */
       if(!rm[cls]){rm[cls]=lam({map:o.material.map});rm[cls].color=robe.color;}o.material=rm[cls];}});
   poseIdle(B,0);return B;}
+/* ===================== Spieltempo (Einstellungen → Grafik & Kamera) ===================== */
+const TEMPOS=[
+ {n:'Entspannt',d:'Langsam aufsteigen, wenige Gegner, gemütliches Reisen',xp:1.5,cd:1.5,dm:1.25,sp:.45,cdS:[45,75],run:7,spr:10.5,broom:1.7,heal:3},
+ {n:'Normal',d:'Ausgewogen, mehr Gewicht pro Kampf (Standard)',xp:1.35,cd:1.4,dm:1.2,sp:.6,cdS:[25,45],run:7.5,spr:11,broom:1.9,heal:3},
+ {n:'Schnell',d:'Wie früher: schnelle Stufen, viele Gegner, Dauerfeuer',xp:1,cd:1,dm:1,sp:1,cdS:[8,15],run:9,spr:13,broom:2.6,heal:99}];
+let TEMPO=TEMPOS[1];try{const v=localStorage.getItem('sf-tempo');if(v!==null&&TEMPOS[+v])TEMPO=TEMPOS[+v];}catch(e){}
+const xpNeed=lv=>Math.round(25*Math.pow(lv,TEMPO.xp));
+/* Gegnerstärke je Gebiet (Reihenfolge wie REG): Lebenspunkte, Schaden pro Treffer, Tempo, Belohnung */
+const REGSTR=[{hp:1,dm:1,sp:1,rw:1},{hp:1.8,dm:1,sp:1.05,rw:1.4},{hp:3,dm:1,sp:1.15,rw:2},{hp:5,dm:2,sp:1.2,rw:3},{hp:3.2,dm:1,sp:1.1,rw:2.1},{hp:5.5,dm:2,sp:1.2,rw:3.2},{hp:6,dm:2,sp:1.15,rw:3.4}];
+
 /* ===================== Weitere Modelle: Waffen, Schmiede, Schattengruft, neue Gegner ===================== */
 const MDL={},MDLW={},ANIM={},_UPV=new THREE.Vector3(0,1,0);
 function mdlLoad(n){if(MDL[n]||MDLW[n])return;MDLW[n]=[];if(!THREE.GLTFLoader||location.protocol==='file:')return;
@@ -494,7 +509,7 @@ function dgTick(dt){if(!DG.on)return;if(player.pos.x<1700){leaveDungeon(false);r
   if(DG.stage===2&&!alive(1)){DG.stage=3;dgOpen(1);toast('Der Weg zum Thronsaal ist frei');}
   if(DG.stage===3&&player.pos.z<-95){DG.stage=4;dgSpawnRoom(2);dialog([['Nachtfürst Varkhul','Ein Lehrling. In meiner Gruft. Wie niedlich.'],['Nachtfürst Varkhul','Ich habe Könige gespalten. Dich spalte ich zum Frühstück.']]);}}
 function dgVictory(b){const c=b.g.position;F.dgK=(F.dgK|0)+1;if(F.dgK===1||Math.random()<.25)dropItem(weltenspalter(),c.x,c.z);
-  for(let i=0;i<3;i++)dropItem(makeItem(8,Math.max(2,rollRar(.3))),c.x,c.z);
+  for(let i=0;i<2;i++)dropItem(makeItem(8,Math.max(1,rollRar(.3))),c.x,c.z);
   for(const e of DG.list)if(e.hp>0&&e!==b){e.hp=0;world.remove(e.g);}
   DG.exit2={x:DG.x,z:-112,r:4,label:'Zurück an die Oberfläche',fn:()=>leaveDungeon(true)};inter.push(DG.exit2);
   const pg=new THREE.Group();pg.position.set(DG.x,0,-112);DG.grp.add(pg);DG.p2=pg;withMdl('d_portal',m=>pg.add(m.clone(true)));
@@ -585,7 +600,17 @@ function setSunMood(sb,mood){sb.faceMat.map=sunFace(mood);sb.faceMat.needsUpdate
 function villager(x,z,hue){const g=new THREE.Group();g.position.set(x,0,z);world.add(g);
   const robe=M('vr'+hue,()=>lam({color:new THREE.Color(`hsl(${hue},70%,45%)`)}));
   P(G.cone,robe,g,0,.6,0,.45,1.2,.45);P(G.sph,M('skin',()=>lam({color:0xffc8a0})),g,0,1.35,0,.28);P(G.cone,robe,g,0,1.95,0,.32,.9,.32);
-  P(G.sph,basic(0x111111),g,-.1,1.4,.25,.05);P(G.sph,basic(0x111111),g,.1,1.4,.25,.05);return g;}
+  P(G.sph,basic(0x111111),g,-.1,1.4,.25,.05);P(G.sph,basic(0x111111),g,.1,1.4,.25,.05);g.userData.hue=hue;vilModel(g,['npc_buerger','npc_frau','npc_buerger','npc_frau','npc_oma'][hue%5]);return g;}
+/* Blender-Figuren (models/npc_*.glb) ersetzen die Kegelmännchen, sobald sie geladen sind. Die Robe/Weste wird je Figur eingefärbt. */
+const NPC_MDL={brunhild:null,kruste:'npc_oma',vega:'npc_gelehrt',lumina:'npc_gelehrt',frostbart:'npc_gelehrt',orlo:'npc_gelehrt',gerd:'npc_wache',brakus:'npc_wache',ilse:'npc_frau',pilgerin:'npc_frau'};
+function npcModelFor(id,name){if(id in NPC_MDL)return NPC_MDL[id];const w=(name||'').split(' ')[0];
+  if(/^(Oma|Großmutter|Tante)/.test(w))return'npc_oma';if(/(Wach|Wächter|Hauptmann|Ritter|Kopfgeld|Soldat)/.test(w))return'npc_wache';
+  if(/^(Meister|Eremit|Astronom|Gelehrt|Priester|Zauber|Weise|Alchimist)/.test(w))return'npc_gelehrt';return/in$/.test(w)?'npc_frau':'npc_buerger';}
+const VILM={};
+function vilModel(g,name){g.userData.vm=name;Promise.resolve().then(()=>withMdl(name,m=>{if(g.userData.vm!==name)return;if(g.userData.vmObj)g.remove(g.userData.vmObj);
+  for(const c of g.children)c.visible=false;const c=m.clone(true);c.scale.setScalar(.8);const hue=g.userData.hue|0;
+  c.traverse(o=>{if(o.isMesh&&o.material.name==='robe'){const k=name+hue;o.material=VILM[k]||(VILM[k]=lam({map:o.material.map,color:new THREE.Color(`hsl(${hue},60%,66%)`)}));}});
+  c.userData.L=['legL','legR','armL','armR'].map(n=>c.getObjectByName(n));g.add(c);g.userData.vmObj=c;}));}
 function goblinMesh(kind){const g=new THREE.Group();const skin=kind==='glut'?M('gs1',()=>lam({color:0xc8402a,emissive:0x300800})):kind==='frost'?M('gs3',()=>lam({color:0x8ad0ff,emissive:0x0a2040})):M('gs2',()=>lam({map:T.goblin(1)}));
   P(G.cone,M('gcl',()=>lam({color:0x3a2014})),g,0,.65,0,.6,1.3,.6);const head=P(G.sph,skin,g,0,1.6,0,.6,.55,.55);
   for(const sx of[-1,1]){const e=P(G.cone,skin,g,sx*.65,1.75,0,.15,.9,.15);e.rotation.z=-sx*1.25;P(G.sph,basic(0xffd02a),g,sx*.22,1.72,.42,.13);P(G.sph,basic(0x000000),g,sx*.22,1.72,.53,.05);}
@@ -710,7 +735,7 @@ const BRIDGES=[[0,8]];const onBridge=x=>BRIDGES.some(b=>Math.abs(x-b[0])<b[1]);
 function isWater(x,z){if(Math.abs(z-riverZ(x))<16&&Math.hypot(x,z)>290&&!onBridge(x))return true;for(const[a,b,r]of LAKES)if(Math.hypot(x-a,z-b)<r*.8)return true;return false;}
 function H(X,Z){
   if(X>1700)return 0;/* Schattengruft: flacher Kerkerboden außerhalb der Karte */
-  if(Z<-800&&Z>-1000){for(const t of bridge)if(t.up&&Math.abs(X-t.x)<=t.w/2+.3&&Math.abs(Z-t.z)<=t.len/2+.3)return 0;return -Infinity;}
+  if(Z<-800&&Z>-1000){for(const t of bridge)if(t.up&&Math.abs(X-t.x)<=t.w/2+.8&&Math.abs(Z-t.z)<=t.len/2+.8)return 0;return -Infinity;}
   if(Z>1192&&Z<1442&&Math.abs(X)<266)return 0;
   const x=X/S,z=Z/S;
   let h=2.2*(2.4*Math.sin(x*.021)*Math.cos(z*.017)+1.2*Math.sin(x*.05+z*.03)+.6*Math.sin(z*.09-x*.04)+3.5*Math.sin(x*.012+1.3)*Math.cos(z*.0105-.4)+1.4*Math.sin(x*.031-z*.027))
@@ -766,7 +791,7 @@ function catMesh(){const g=new THREE.Group();const k=M('cat',()=>lam({color:0x1a
 
 /* NPCs und Questmarker */
 const npcs={},markers=[];
-function npc(id,name,mesh,talk,r=3.5){mesh.userData.id=id;npcs[id]={id,name,g:mesh,talk};inter.push({obj:mesh,r,label:'Mit '+name+' sprechen',fn:()=>{F.talked[id]=1;talk();},id});
+function npc(id,name,mesh,talk,r=3.5){mesh.userData.id=id;if(mesh.userData.hue!==undefined){const mm=npcModelFor(id,name);if(mm)vilModel(mesh,mm);else mesh.userData.vm=null;}npcs[id]={id,name,g:mesh,talk};inter.push({obj:mesh,r,label:'Mit '+name+' sprechen',fn:()=>{F.talked[id]=1;talk();},id});
   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:markTex('!'),transparent:true,depthTest:false}));s.scale.set(1.4,1.4,1);s.visible=false;world.add(s);markers.push({id,s,g:mesh,h:mesh.userData.mh||3.4,ch:''});return npcs[id];}
 function namedVillager(x,z,hue,s=1.15,extra){const v=villager(x,z,hue);v.position.y=H(x,z);v.scale.setScalar(s);if(extra)extra(v);return v;}
 
@@ -849,7 +874,7 @@ function buildForest(){const ox=-825,oz=-175;
 
 /* ---------- Leuchtschlucht (Norden) ---------- */
 function buildCanyon(){const dk=M('dk',()=>lam({map:T.dark(1,4)}));
-  WORLD.pathMat=new THREE.MeshLambertMaterial({map:T.path(1,1),emissive:0x0a6a7a});bridge=[];
+  WORLD.pathMat=new THREE.MeshLambertMaterial({map:T.path(1,1),emissive:0x0a6a7a,transparent:F.br<2,opacity:F.br>=2?1:.28,depthWrite:F.br>=2});bridge=[];
   let z=-786,i=0;while(z>-1014){const len=i%3===2?6:10,w=i%4===3?6:9,x=Math.sin(z*.024)*12;const up=F.br>=2;
     const m=P(G.box,WORLD.pathMat,world,x,up?-.5:-28,z-len/2,w,1,len);bridge.push({x,z:z-len/2,w,len,m,i,up});z-=len+(i%3===1?3.5:0);i++;}
   WORLD.rise=F.br>=2?99:-1;
@@ -898,7 +923,7 @@ function buildSwamp(){const ox=900,oz=75;
   WORLD.pipes=3;const pipeM=M('pipe',()=>new THREE.MeshPhongMaterial({color:0xe06a2a,shininess:70}));
   [[848,42],[848,111],[920,120]].forEach(([x,z])=>{const g=new THREE.Group();g.position.set(x,H(x,z)+3,z);world.add(g);P(G.cyl,pipeM,g,0,4,0,.5,8,.5);P(G.sph,M('tank',()=>lam({map:T.slime(1),emissive:0x206010})),g,0,8.5,0,1.8);
     P(G.sph,M('valve',()=>new THREE.MeshPhongMaterial({color:0xff3a10,emissive:0x601000,shininess:90})),g,0,0,0,1);g.add(glow(0xff5a20,3));
-    const e=addEnemy(g,{hp:5,r:1.4,hitY:0,type:'static',noXp:1});e.onDie=()=>{WORLD.pipes--;burst(g.position,0x7dff4a);toast(WORLD.pipes?`Schleimturm zerstört! Noch ${WORLD.pipes}`:'Der Schleimpanzer platzt!');
+    const e=addEnemy(g,{hp:18,r:1.4,hitY:0,type:'static',noXp:1});e.onDie=()=>{WORLD.pipes--;burst(g.position,0x7dff4a);toast(WORLD.pipes?`Schleimturm zerstört! Noch ${WORLD.pipes}`:'Der Schleimpanzer platzt!');
       if(!WORLD.pipes&&WORLD.sch){WORLD.sch.shield=false;WORLD.shieldM.visible=false;dialog(say('Schleimgurgel','NEIN! Mein Panzer! Na warte, dann eben mit bloßen Händen. Gurgel!'));}};});
   const g=new THREE.Group();g.position.set(902,H(902,75),75);world.add(g);const skin=M('gs2',()=>lam({map:T.goblin(1)}));
   P(G.cone,M('gcl',()=>lam({color:0x3a2014})),g,0,2.2,0,2.4,4.4,2.4);P(G.sph,skin,g,0,5.6,0,2.6,2.1,2.2);
@@ -906,7 +931,7 @@ function buildSwamp(){const ox=900,oz=75;
   P(G.box,basic(0x1a0000),g,0,4.6,1.9,3,.9,.4);for(let i=0;i<8;i++)P(G.cone4,basic(0xf0f0ff),g,-1.3+i*.37,5,2.05,.16,.55,.16).rotation.x=PI;
   P(G.cyl,new THREE.MeshBasicMaterial({color:0x7dff4a,transparent:true,opacity:.85}),g,0,2.5,2.4,.4,4,.4);P(G.cyl,M('staff',()=>lam({color:0x5a3a20})),g,2.6,4,1.2,.15,6,.15).rotation.z=-.5;
   WORLD.shieldM=P(G.sph,new THREE.MeshBasicMaterial({color:0x7dff4a,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false}),g,0,4,0,5);
-  const b=addEnemy(g,{hp:30,r:3.2,hitY:5,type:'boss',shield:true,t:0,name:'Schleimgurgel',xp:60,gold:40,home:g.position.clone(),arena:70});WORLD.sch=b;
+  const b=addEnemy(g,{hp:280,dmg:2,r:3.2,hitY:5,type:'boss',shield:true,t:0,name:'Schleimgurgel',xp:60,gold:40,home:g.position.clone(),arena:70});WORLD.sch=b;
   b.onDie=()=>{F.sch=1;WORLD.sch=null;spawnMainSpark(b.g.position.x-6,b.g.position.z,'sumpf');dialog([['Schleimgurgel','Blrrgh … meine schöne Suppe … nimm den Funken … Zorgrimm wird dich sowieso fressen …'],['Fennick','Dann soll er sich anstellen.']]);save();};}
 
 /* ---------- Aschenmark & Zorgrimms Burg (Süden) ---------- */
@@ -946,7 +971,7 @@ function buildZorgrimm(){const g=new THREE.Group();g.position.set(0,0,1380);g.sc
   for(const sx of[-1,1]){P(G.sph,eyeM,g,sx*2.8,10.4,4.6,1.9,1.5,1);P(G.box,basic(0x100000),g,sx*2.8,10.4,5.6,.5,2.4,.3);const eg=glow(0xffd020,5);eg.position.set(sx*2.8,10.4,6);g.add(eg);eyes.push(eg);
     P(G.box,sc,g,sx*2.8,12.6,4.4,4.4,1,1.4).rotation.z=sx*.45;P(G.cone,M('horn',()=>lam({color:0x2a40c0})),g,sx*6.3,12.5,0,1.1,8,1.1).rotation.z=-sx;P(G.cone4,sc,g,sx*7,8,0,1.5,5,.4).rotation.z=-sx*1.8;}
   const lm=M('leo',()=>lam({map:T.leopard(2),side:THREE.DoubleSide}));P(G.cyl,lm,g,0,16.4,0,3.6,3.4,3.6);for(let i=0;i<8;i++){const a=i/8*TAU;P(G.cone4,lm,g,Math.sin(a)*3.5,19.4,Math.cos(a)*3.5,.9,3.2,.9);}P(G.oct,basic(0xff2040),g,0,16.6,3.7,.7);
-  const b=addEnemy(g,{hp:44,r:12.6,hitY:16,type:'boss',shield:true,t:0,name:'Drachenkönig Zorgrimm',xp:150,gold:120,jaw,eyeM,eyes,ph:'attack',pt:0,arena:170,home:g.position.clone()});WORLD.zor=b;
+  const b=addEnemy(g,{hp:450,r:12.6,hitY:16,type:'boss',shield:true,t:0,name:'Drachenkönig Zorgrimm',xp:150,gold:120,jaw,eyeM,eyes,ph:'attack',pt:0,arena:170,home:g.position.clone()});WORLD.zor=b;
   b.onDie=()=>{F.zor=1;WORLD.zor=null;spawnMainSpark(0,1340,'burg');F.main=Math.max(F.main,3);
     dialog([['Drachenkönig Zorgrimm','Grrr … aaah … Na gut. NA GUT. Nimm ihn. Er hat ohnehin nur von Brot und Morgentau gehandelt …'],['Erzähler','Ein Grollen geht über das Land. Am Himmel im Norden erhebt sich eine rote Sonne mit Zähnen. Sol Glutbart ist aufgewacht, ohne ihre Träume.'],['Fennick','Das Sternenschloss hinter der Leuchtschlucht. Dort kann ich ihr die Funken zurückgeben.']],()=>{spawnSkySun('evil');if(WORLD.sun)setSunMood(WORLD.sun,'evil');});save();};}
 
@@ -1207,7 +1232,7 @@ const SPAWN=[{t:'goblin',k:'glut',x:-825,z:-175,r:400,max:22},{t:'goblin',k:'gru
 function spawnOne(s,force){for(let k=0;k<8;k++){const a=R(0,TAU),r=R(0,s.r),x=s.x+Math.sin(a)*r,z=s.z+Math.cos(a)*r,y=H(x,z);
   if(s.t!=='bat'&&!isFinite(y))continue;if(Math.hypot(x,z)<300||(z>1190&&Math.abs(x)<275))continue;if(!force&&Math.hypot(x-player.pos.x,z-player.pos.z)<30)continue;
   const e=s.t==='goblin'?goblinE(x,z,s.k):s.t==='bat'?batE(x,(isFinite(y)?y:0)+R(4,8),z):s.t==='knight'?knightE(x,z,false):sootE(x,z);rpgEnemy(e);s.alive.push(e);return;}}
-function spawnTick(dt){for(const s of SPAWN){s.alive=s.alive.filter(e=>e.hp>0);s.cd-=dt;if(s.cd>0||s.alive.length>=s.max)continue;if(Math.hypot(player.pos.x-s.x,player.pos.z-s.z)>s.r+150)continue;spawnOne(s,false);s.cd=R(8,15);}}
+function spawnTick(dt){for(const s of SPAWN){s.alive=s.alive.filter(e=>e.hp>0);s.cd-=dt;if(s.cd>0||s.alive.length>=Math.ceil(s.max*TEMPO.sp))continue;if(Math.hypot(player.pos.x-s.x,player.pos.z-s.z)>s.r+150)continue;spawnOne(s,false);s.cd=R(TEMPO.cdS[0],TEMPO.cdS[1]);}}
 
 /* ---------- Welt aufbauen ---------- */
 function buildAll(){world.traverse(o=>{if(o.geometry&&!SHARED.has(o.geometry))o.geometry.dispose();});scene.remove(world);world=new THREE.Group();scene.add(world);
@@ -1218,21 +1243,21 @@ function buildAll(){world.traverse(o=>{if(o.geometry&&!SHARED.has(o.geometry))o.
   try{
   const r0=REG[0];skyDome({top:r0.top,mid:r0.mid,bot:r0.bot,sc:r0.sc,spiral:r0.sp,stars:r0.st});WORLD.skyM=world.children[world.children.length-1];WORLD.skyM.scale.setScalar(.66);
   scene.fog=new THREE.Fog(r0.fog,r0.fn,r0.ff);setupLights(0xc0d0ff,0x305a20,0xfff0c0);
-  buildTerrain();buildVillage();buildForest();buildCanyon();buildStarCastle();buildSwamp();buildAsh();buildFrost();buildPOI();buildMore();buildGruft();buildNature();buildExtras();flushBatches();
+  buildTerrain();buildVillage();buildForest();buildCanyon();buildStarCastle();buildSwamp();buildAsh();buildFrost();buildPOI();buildMore();buildGruft();storyReserve();buildNature();buildExtras();buildStory();flushBatches();
   if(F.end){spawnSkySun('happy');setSunMood(WORLD.sun,'happy');}else if(F.zor){spawnSkySun('evil');setSunMood(WORLD.sun,'evil');}else if(F.main>=2)setSunMood(WORLD.sun,'peek');
-  for(const s of SPAWN){s.alive=[];s.cd=0;for(let i=0;i<Math.ceil(s.max*.6);i++)spawnOne(s,true);}
+  for(const s of SPAWN){s.alive=[];s.cd=0;for(let i=0;i<Math.ceil(s.max*.6*TEMPO.sp);i++)spawnOne(s,true);}
   if(!mapBg)drawMapBg();
   }finally{Math.random=mr;}
   cur.init=false;pgN=-1;}
 
 /* ---------- HUD ---------- */
 function updHUD(){$('hearts').textContent='♥'.repeat(Math.max(0,player.hp))+'♡'.repeat(Math.max(0,player.maxHp-player.hp));
-  $('lv').textContent='Stufe '+player.lv;$('gold').textContent=player.gold+' Gold';$('pots').textContent=player.pots+' Tränke';$('xpf').style.width=Math.min(100,player.xp/(25*player.lv)*100)+'%';
+  $('lv').textContent='Stufe '+player.lv;$('gold').textContent=player.gold+' Gold';$('pots').textContent=player.pots+' Tränke';$('xpf').style.width=Math.min(100,player.xp/xpNeed(player.lv)*100)+'%';
   const tq=trackedQ(),tMain=tq&&tq.tag==='Hauptquest',side=tq?(tMain?null:tq):questList().slice(1).find(q=>!q.done);
   $('track').innerHTML=`<b>${tMain?'◎ ':''}Die Träume der Sonne</b>${mainObj()}`+(side?`<b style="margin-top:6px">${tq?'◎ ':''}${side.t}</b>${side.d}`:'');
   if(activeBoss)$('bossFill').style.width=Math.max(0,activeBoss.hp/activeBoss.max*100)+'%';}
 function feed(t,c){const d=document.createElement('div');d.textContent=t;d.style.color=c||'#fff';$('feed').appendChild(d);setTimeout(()=>d.remove(),2200);while($('feed').children.length>5)$('feed').firstChild.remove();}
-function addXp(n){const gb=groupBonus();if(gb>1)n=Math.round(n*gb);player.xp+=n;feed(`+${n} EP`+(gb>1?' (Gruppe)':''),'#c89aff');while(player.xp>=25*player.lv){player.xp-=25*player.lv;player.lv++;player.maxHp=Math.min(14+CL().hp-5+RPG.bonusHp,player.maxHp+1);player.hp=player.maxHp;if(player.lv%3===0)player.dmg++;
+function addXp(n){const gb=groupBonus();if(gb>1)n=Math.round(n*gb);player.xp+=n;feed(`+${n} EP`+(gb>1?' (Gruppe)':''),'#c89aff');while(player.xp>=xpNeed(player.lv)){player.xp-=xpNeed(player.lv);player.lv++;player.maxHp=Math.min(14+CL().hp-5+RPG.bonusHp,player.maxHp+1);player.hp=Math.min(player.maxHp,player.hp+TEMPO.heal);if(player.lv%3===0)player.dmg++;
   toast(`Stufe ${player.lv}! Ein Herz mehr`+(player.lv%3===0?', Zauber stärker':''));beep(660,.2,'triangle',.07);setTimeout(()=>beep(990,.3,'triangle',.07),150);flash('#c89aff',.35);}updHUD();}
 let dq=[],dcb=null;
 function dialog(lines,cb){if(!lines||!lines.length){cb&&cb();return;}state='dialog';dq=lines.slice();dcb=cb||null;$('prompt').hidden=true;nextLine();}
@@ -1324,7 +1349,7 @@ function jump(){if(state==='play'&&player.onGround){player.vy=12.5;player.onGrou
 function act(){if(state==='play'&&curInter)curInter.fn();}
 function potion(){if(state!=='play')return;if(player.pots<=0){toast('Keine Tränke mehr. Wilma verkauft welche.');return;}if(player.hp>=player.maxHp){toast('Du bist schon gesund');return;}
   player.pots--;player.hp=Math.min(player.maxHp,player.hp+3+tal("quell"));flash('#ff7ab0',.3);beep(700,.25,'sine',.07);updHUD();}
-function shoot(){if(state!=='play'||player.cool>0)return;player.cool=(CL().cool||.26)*(1-.12*tal("komet"));
+function shoot(){if(state!=='play'||player.cool>0)return;player.cool=(CL().cool||.26)*(1-.12*tal("komet"))*TEMPO.cd;
   const dir=new THREE.Vector3(Math.sin(player.rot),0,Math.cos(player.rot));const from=player.pos.clone();from.y+=1.8;
   let best=null,bd=42;for(const e of enemies){if(e.hp<=0||e.noAim)continue;const tp=e.g.position.clone();tp.y+=e.hitY;const v=tp.sub(from);const d=v.length();if(d<bd&&v.clone().setY(0).normalize().dot(dir)>.8){bd=d;best=v.normalize();}}
   if(best)dir.copy(best);const m=new THREE.Group();m.position.copy(from).addScaledVector(dir,.8);m.add(glow(CL().orb,1.8+player.dmg*.3));P(G.sph,basic(0xffffff),m,0,0,0,.22);world.add(m);
@@ -1353,28 +1378,28 @@ function enemyAI(e,dt){const p=e.g.position;const toP=_v.copy(player.pos).sub(p)
   if(e.type==='goblin'){let tgt=player.pos,near=1.2;if(e.focus&&d>13){tgt=e.focus;near=3;}const to=tgt.clone().sub(p);to.y=0;const dl=to.length();
     if(dl>near&&(dl<24||e.focus)){to.normalize();p.addScaledVector(to,e.speed*dt);e.g.rotation.y=Math.atan2(to.x,to.z);}
     else if(tgt===e.focus){const a=Math.atan2(p.x-tgt.x,p.z-tgt.z)+dt*1.5;p.x=tgt.x+Math.sin(a)*3;p.z=tgt.z+Math.cos(a)*3;e.g.rotation.y=a+PI/2;}
-    constrain(p);const gy=H(p.x,p.z);p.y=(isFinite(gy)?gy:0)+Math.abs(Math.sin(time*9+p.x))*.3;if(d<1.5)hurt(1);}
+    constrain(p);const gy=H(p.x,p.z);p.y=(isFinite(gy)?gy:0)+Math.abs(Math.sin(time*9+p.x))*.3;if(d<1.5)hurt(e.dmg||1);}
   else if(e.type==='soot'){e.ph+=dt;if(d<17){p.addScaledVector(toP.normalize(),e.speed*dt);}else{p.x+=Math.sin(e.ph*.7)*dt*2;p.z+=Math.cos(e.ph*.5)*dt*2;}constrain(p);
-    p.y=H(p.x,p.z)+1.1+Math.sin(e.ph*3)*.4;e.g.lookAt(player.pos.x,p.y,player.pos.z);e.carry.rotation.y+=dt*4;if(d<1.5)hurt(1);}
+    p.y=H(p.x,p.z)+1.1+Math.sin(e.ph*3)*.4;e.g.lookAt(player.pos.x,p.y,player.pos.z);e.carry.rotation.y+=dt*4;if(d<1.5)hurt(e.dmg||1);}
   else if(e.type==='bat'){e.ph+=dt;e.wl.rotation.z=Math.sin(e.ph*14)*.7;e.wr.rotation.z=-Math.sin(e.ph*14)*.7;
     const tgt=d<15?player.pos.clone().setY(player.pos.y+1.6):e.home.clone().add(new THREE.Vector3(Math.sin(e.ph)*4,Math.sin(e.ph*2),Math.cos(e.ph)*4));
-    const v=tgt.sub(p);if(v.length()>.1)p.addScaledVector(v.normalize(),e.speed*dt);e.g.lookAt(player.pos.x,p.y,player.pos.z);if(p.distanceTo(player.pos)<2.2&&Math.abs(p.y-player.pos.y-1.2)<1.4)hurt(1);}
+    const v=tgt.sub(p);if(v.length()>.1)p.addScaledVector(v.normalize(),e.speed*dt);e.g.lookAt(player.pos.x,p.y,player.pos.z);if(p.distanceTo(player.pos)<2.2&&Math.abs(p.y-player.pos.y-1.2)<1.4)hurt(e.dmg||1);}
   else if(e.type==='knight'){e.t+=dt;const reach=2.6*e.g.scale.x;
     if(e.st==='walk'){if(d<20&&d>reach*.8)p.addScaledVector(toP.normalize(),e.speed*dt);e.g.rotation.y=Math.atan2(player.pos.x-p.x,player.pos.z-p.z);e.arm.rotation.x=Math.sin(time*6)*.1;if(d<reach){e.st='wind';e.t=0;}}
-    else if(e.st==='wind'){e.arm.rotation.x=Math.max(-1.7,e.arm.rotation.x-dt*5);e.eye.scale.setScalar(1.1+Math.sin(time*40)*.6);if(e.t>.6){e.st='swing';e.t=0;e.arm.rotation.x=.7;beep(180,.12,'sawtooth',.05);if(d<reach+1)hurt(1);}}
+    else if(e.st==='wind'){e.arm.rotation.x=Math.max(-1.7,e.arm.rotation.x-dt*5);e.eye.scale.setScalar(1.1+Math.sin(time*40)*.6);if(e.t>.6){e.st='swing';e.t=0;e.arm.rotation.x=.7;beep(180,.12,'sawtooth',.05);if(d<reach+1)hurt(e.dmg||1);}}
     else if(e.st==='swing'&&e.t>.9){e.st='walk';e.t=0;e.eye.scale.setScalar(1.1);}
     constrain(p);const gy=H(p.x,p.z);p.y=isFinite(gy)?gy:0;}}
 function bossAI(e,dt){const p=e.g.position;const inArena=e===WORLD.zor?(player.pos.z>1205&&Math.abs(player.pos.x)<262&&Math.hypot(player.pos.x-e.home.x,player.pos.z-e.home.z)<e.arena):Math.hypot(player.pos.x-e.home.x,player.pos.z-e.home.z)<e.arena;
   if(inArena&&activeBoss!==e){activeBoss=e;$('boss').hidden=false;$('bossName').textContent=e.name;updHUD();}if(!inArena){if(activeBoss===e){activeBoss=null;$('boss').hidden=true;}return;}
   e.t+=dt;const to=player.pos.clone().sub(p);to.y=0;const d=to.length();const rage=e.hp<e.max/2;
   if(e===WORLD.sch){e.g.rotation.y=Math.atan2(to.x,to.z);e.g.scale.y=1+Math.sin(time*5)*.05;
-    if(!e.shield){if(d>5)p.addScaledVector(to.normalize(),(rage?3.6:2.4)*dt);if(Math.hypot(p.x-e.home.x,p.z-e.home.z)>60){p.x+=(e.home.x-p.x)*dt;p.z+=(e.home.z-p.z)*dt;}constrain(p);p.y=H(p.x,p.z);if(d<4.2)hurt(1);}
-    if(e.t>(e.shield?2.6:rage?1.3:1.9)){e.t=0;const n=rage?5:3;for(let k=0;k<n;k++){const tgt=player.pos.clone().add(new THREE.Vector3(R(-4,4),0,R(-4,4)));const from=p.clone();from.y+=7;const fl=1.3;const vel=tgt.sub(from).multiplyScalar(1/fl);vel.y=(player.pos.y-from.y+.5*20*fl*fl)/fl;enemyShot(from,vel,0x7dff4a,1.1,20);}beep(200,.2,'sine',.06);}}
+    if(!e.shield){if(d>5)p.addScaledVector(to.normalize(),(rage?3.6:2.4)*dt);if(Math.hypot(p.x-e.home.x,p.z-e.home.z)>60){p.x+=(e.home.x-p.x)*dt;p.z+=(e.home.z-p.z)*dt;}constrain(p);p.y=H(p.x,p.z);if(d<4.2)hurt(e.dmg);}
+    if(e.t>(e.shield?2.6:rage?1.3:1.9)){e.t=0;const n=rage?7:4;for(let k=0;k<n;k++){const tgt=player.pos.clone().add(new THREE.Vector3(R(-4,4),0,R(-4,4)));const from=p.clone();from.y+=7;const fl=1.3;const vel=tgt.sub(from).multiplyScalar(1/fl);vel.y=(player.pos.y-from.y+.5*20*fl*fl)/fl;enemyShot(from,vel,0x7dff4a,1.1,20,rage?2:1);}beep(200,.2,'sine',.06);}}
   else{e.pt+=dt;const now=Date.now()/1000;p.x=e.home.x+Math.sin(now*(rage?.6:.4))*45;p.y=Math.sin(now*1.3)*.6;e.g.rotation.y=Math.atan2(player.pos.x-p.x,player.pos.z-p.z);
     if(e.ph==='attack'){e.jaw.rotation.x=0;if(e.t>(rage?1.05:1.6)){e.t=0;const fw=new THREE.Vector3(Math.sin(e.g.rotation.y),0,Math.cos(e.g.rotation.y));const from=p.clone().addScaledVector(fw,7*e.bs);from.y+=5*e.bs;
-        const base=player.pos.clone().setY(1).sub(from).normalize();const n=rage?5:3;for(let k=0;k<n;k++){const v=base.clone().applyAxisAngle(new THREE.Vector3(0,1,0),(k-(n-1)/2)*.2).multiplyScalar(rage?22:18);enemyShot(from,v,0xff6a20,1.4);}beep(90,.3,'sawtooth',.07);}
+        const base=player.pos.clone().setY(1).sub(from).normalize();const n=rage?7:4;for(let k=0;k<n;k++){const v=base.clone().applyAxisAngle(new THREE.Vector3(0,1,0),(k-(n-1)/2)*.2).multiplyScalar(rage?22:18);enemyShot(from,v,0xff6a20,1.4,0,rage?3:2);}beep(90,.3,'sawtooth',.07);}
       if(e.pt>4.2){e.pt=0;e.ph='open';e.shield=false;e.eyeM.color.setHex(0xffff60);e.eyes.forEach(g=>g.scale.set(9,9,1));beep(300,.4,'square',.05);
-        if(rage&&enemies.filter(x=>x.type==='knight'&&x.hp>0&&x.g.position.z>1205).length<2){const k=knightE(R(-60,60),R(1300,1340),false);k.noRespawn=1;}}}
+        if(rage&&enemies.filter(x=>x.type==='knight'&&x.hp>0&&x.g.position.z>1205).length<3){const k=knightE(R(-60,60),R(1300,1340),true);rpgEnemy(k);k.noRespawn=1;}}}
     else{e.jaw.rotation.x=Math.min(.55,e.jaw.rotation.x+dt*2);if(e.pt>2.8){e.pt=0;e.ph='attack';e.shield=true;e.t=0;e.eyeM.color.setHex(0xc8a000);e.eyes.forEach(g=>g.scale.set(5,5,1));}}}}
 
 /* ---------- Regionen-Stimmung ---------- */
@@ -1395,12 +1420,13 @@ function applyMood(dt){const k=cur.init?Math.min(1,dt*1.2):1;cur.init=true;for(c
 function worldTick(dt){const sb=WORLD.sun;if(sb){sb.rays.rotation.z+=dt*(sb.mood==='evil'?.6:.15);for(const l of sb.legs){l.hip.rotation.x=-1.25+Math.sin(time*1.6+l.sx)*.22;l.knee.rotation.x=1.1+Math.sin(time*1.6+l.sx+1)*.3;}}
   const ss=WORLD.skySun;if(ss){ss.g.position.set(camera.position.x+30,camera.position.y+56,camera.position.z-330);ss.g.lookAt(camera.position);ss.rays.rotation.z+=dt*.4;for(const l of ss.legs){l.hip.rotation.x=-.4+Math.sin(time*2+l.sx*1.5)*.5;l.knee.rotation.x=.6+Math.sin(time*2+l.sx*1.5+1)*.4;}}
   for(const v of WORLD.vill||[]){const p=v.g.position;if(Math.abs(p.x-player.pos.x)>170||Math.abs(p.z-player.pos.z)>170)continue;v.ph+=dt*v.sp;const q=(Math.sin(v.ph)+1)/2,dir=Math.cos(v.ph)>0?1:-1;
-    p.x=v.a[0]+(v.b[0]-v.a[0])*q;p.z=v.a[1]+(v.b[1]-v.a[1])*q;p.y=H(p.x,p.z)+Math.abs(Math.sin(time*7+v.ph*9))*.1;v.g.rotation.y=Math.atan2((v.b[0]-v.a[0])*dir,(v.b[1]-v.a[1])*dir);}
+    p.x=v.a[0]+(v.b[0]-v.a[0])*q;p.z=v.a[1]+(v.b[1]-v.a[1])*q;p.y=H(p.x,p.z)+Math.abs(Math.sin(time*7+v.ph*9))*.1;v.g.rotation.y=Math.atan2((v.b[0]-v.a[0])*dir,(v.b[1]-v.a[1])*dir);
+    const vo=v.g.userData.vmObj;if(vo){const[a,b,c,d]=vo.userData.L,w=Math.sin(time*9+v.ph*20)*.5;if(a){a.rotation.x=w;b.rotation.x=-w;}if(c){c.rotation.x=-w*.6;d.rotation.x=w*.6;}}}
   for(const o of WORLD.orbs||[]){o.a+=dt*.6;o.s.position.set(o.cx+Math.sin(o.a)*o.r,o.y+Math.sin(time*1.3+o.a*2)*2,o.cz+Math.cos(o.a)*o.r);}
   if(WORLD.snow&&Math.hypot(player.pos.x+1000,player.pos.z+1230)<650){const a=WORLD.snow.geometry.attributes.position;for(let i=0;i<a.count;i++){const y=a.array[i*3+1]-dt*3;a.array[i*3+1]=y<WORLD.snowB[i]?WORLD.snowB[i]+40:y;}a.needsUpdate=true;}
   const k=WORLD.kn;if(k){const panic=F.kn<2;k.g.position.y=H(-825,-175)+(panic?Math.abs(Math.sin(time*9))*.7:Math.abs(Math.sin(time*2))*.1);k.head.rotation.z=panic?Math.sin(time*18)*.25:0;k.g.rotation.y=panic?time*2:Math.atan2(player.pos.x-k.g.position.x,player.pos.z-k.g.position.z);}
   if(WORLD.vineDown&&WORLD.vine.position.y>-9)WORLD.vine.position.y-=dt*4;
-  if(WORLD.rise>=0&&WORLD.rise<99){WORLD.rise+=dt;let all=true;for(const t of bridge){const q=Math.min(1,Math.max(0,WORLD.rise*5-t.i*.3));t.m.position.y=-28+27.5*(1-(1-q)*(1-q));if(q>=1)t.up=true;else all=false;}if(all){WORLD.rise=99;save();}}
+  if(WORLD.rise>=0&&WORLD.rise<99){WORLD.rise+=dt;{const pm=WORLD.pathMat;pm.opacity=Math.min(1,.28+WORLD.rise*.6);if(pm.opacity>=1&&pm.transparent){pm.transparent=false;pm.depthWrite=true;pm.needsUpdate=true;}}let all=true;for(const t of bridge){const q=Math.min(1,Math.max(0,WORLD.rise*5-t.i*.3));t.m.position.y=-28+27.5*(1-(1-q)*(1-q));if(q>=1)t.up=true;else all=false;}if(all){WORLD.rise=99;save();}}
   for(const r of WORLD.rocks||[])r.position.y+=Math.sin(time+r.position.x)*dt*.5;
   if(WORLD.gateUp&&WORLD.gate.position.y<22)WORLD.gate.position.y+=dt*5;if(WORLD.freeBars&&WORLD.bars.position.y>H(-150,750)-6)WORLD.bars.position.y-=dt*3;
   if(WORLD.mo)WORLD.mo.g.rotation.y=Math.atan2(player.pos.x-WORLD.mo.g.position.x,player.pos.z-WORLD.mo.g.position.z);
@@ -1418,7 +1444,7 @@ function update(dt){time+=dt;if(skyU)skyU.t.value=time;
   if(state==='play'){
     const px0=player.pos.x,pz0=player.pos.z,py0=player.pos.y;let ix=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+stick.x,iz=(keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.ArrowUp?1:0)+stick.y;
     if(keys.KeyQ)camYaw+=dt*2;const l=Math.hypot(ix,iz);if(l>1){ix/=l;iz/=l;}
-    const fx_=-Math.sin(camYaw),fz=-Math.cos(camYaw),rx=Math.cos(camYaw),rz=-Math.sin(camYaw);const mx=rx*ix-fx_*iz,mz=rz*ix-fz*iz;const spd=speedMul()*(keys.ShiftLeft?13:9)*(riding?2.6:isWater(player.pos.x,player.pos.z)?.6:1);
+    const fx_=-Math.sin(camYaw),fz=-Math.cos(camYaw),rx=Math.cos(camYaw),rz=-Math.sin(camYaw);const mx=rx*ix-fx_*iz,mz=rz*ix-fz*iz;const spd=speedMul()*(keys.ShiftLeft?TEMPO.spr:TEMPO.run)*(riding?TEMPO.broom:isWater(player.pos.x,player.pos.z)?.6:1);
     if(l>.1){player.pos.x+=mx*spd*dt;player.pos.z+=mz*spd*dt;const tr=Math.atan2(mx,mz);let dd=tr-player.rot;dd=Math.atan2(Math.sin(dd),Math.cos(dd));player.rot+=dd*Math.min(1,dt*12);}
     constrain(player.pos);player.vy-=32*dt;player.pos.y+=player.vy*dt;let gy=Hm(player.pos.x,player.pos.z);
     /* Steilhang oder hohes Tempo: nicht durch den Boden rutschen. Kam man aus einer Grube, ist der Hang eine Wand. */
@@ -1482,7 +1508,7 @@ function startGame(cont,cls){try{ac=ac||new (window.AudioContext||window.webkitA
   rpgLoad(s&&s.rpg);applyClassLook();buildAll();respawnSparks();if(s)player.pos.set(s.p.x,0,s.p.z);else player.pos.set(0,0,16);const gy=H(player.pos.x,player.pos.z);player.pos.y=isFinite(gy)?gy:0;if(!isFinite(gy))player.pos.set(0,H(0,16),16);constrain(player.pos);
   player.check.copy(player.pos);player.rot=PI;camYaw=0;camPitch=.35;curReg='';
   $('title').hidden=true;$('end').hidden=true;$('touch').hidden=!touchMode;state='play';unfocus();try{cv.focus({preventScroll:true});}catch(e){}updHUD();drawMap();save();
-  if(!s)dialog([['Erzähler',`Fennick Sternenhut, ${CL().n}. ${CL().d}`],['Erzähler','Butterbühl. Hier steht kein Haus gerade, und auf einem Dach sitzt seit hundert Jahren die Sonne und lässt die Beine baumeln.'],['Butterbühler','Sie schnarcht! Das hat sie noch nie getan. Und aus den Schornsteinen kommen Rußwichte, die glänzende Funken klauen!'],
+  if(!s)dialog([['Erzähler',`Fennick Sternenhut, ${CL().n}. ${CL().d}`],['Erzähler','Den viel zu großen Sternenhut hat dir dein Meister Orlo hinterlassen. Vor sieben Jahren ging er eines Nachts fort und kam nie zurück.'],['Erzähler','Butterbühl. Hier steht kein Haus gerade, und auf einem Dach sitzt seit hundert Jahren die Sonne und lässt die Beine baumeln.'],['Butterbühler','Sie schnarcht! Das hat sie noch nie getan. Und aus den Schornsteinen kommen Rußwichte, die glänzende Funken klauen!'],
     ['Fennick','Funken? Träume? Das klingt nach Zauberei. Ich frag sie einfach selbst. Das orange Haus nordöstlich vom Marktplatz.'],['Erzähler','Butterbühl ist groß, und das Land dahinter noch viel größer. M öffnet die Karte, L das Questbuch. Ruthilde am Kornmarkt im Norden verkauft Reisebesen (Taste B).'],['Erzähler','Die Minikarte zeigt gelbe Punkte für Questziele, Ausrufezeichen für neue Aufträge. H trinkt einen Heiltrank.']]);}
 /* Reisebesen */
 let riding=false;const broom=new THREE.Group();broom.position.set(0,.35,0);broom.visible=false;hero.add(broom);
@@ -1974,14 +2000,15 @@ const spCdMul=id=>(id==='feuer'?1-.2*tal('inferno'):1)*(tal('kosmos')?.8:1);
 const SPELLS=[{id:'feuer',n:'Feuerball',k:'R',mp:4,cd:1.2,lv:2,c:'#ff7a3a',d:'Explodiert und trifft alle Gegner im Umkreis.'},{id:'frost',n:'Frostring',k:'C',mp:6,cd:6,lv:4,c:'#7ad0ff',d:'Schaden um dich herum, Gegner werden langsam.'},{id:'schild',n:'Sternenschild',k:'X',mp:5,cd:15,lv:6,c:'#ffe27a',d:'Fängt die nächsten 3 Treffer ab (8 s).'}];
 let RPG={inv:[],eq:{},tal:{},mp:10,bonusHp:0,cds:{},shieldHits:0,shieldT:0,regenT:0,lastLv:1,uid:1};
 const tal=id=>RPG.tal[id]|0,gear=s=>Object.values(RPG.eq).reduce((a,it)=>a+((it&&it.st[s])|0),0);
-const totalDmg=()=>player.dmg+gear('dmg')+tal('brand'),dmgMul=()=>1+.15*tal('glut')+.25*tal('zorn')+(CL().mul||0),critCh=()=>Math.min(.75,.05+.08*tal('krit')+.1*tal('zorn')+gear('krit')/100+(CL().krit||0));
+const totalDmg=()=>player.dmg+gear('dmg')+tal('brand'),dmgMul=()=>(1+.15*tal('glut')+.25*tal('zorn')+(CL().mul||0))*TEMPO.dm,critCh=()=>Math.min(.75,.05+.08*tal('krit')+.1*tal('zorn')+gear('krit')/100+(CL().krit||0));
 const maxMp=()=>10+4*tal('mana')+6*tal('kosmos')+gear('mp')+(CL().mp||0),speedMul=()=>(1+.08*tal('eile')+gear('spd')/100+(CL().spd||0))*(invWeight()>carryMax()?.75:1),goldMul=()=>1+.15*tal('gold')+gear('gold')/100+(CL().gold||0),blockCh=()=>Math.min(.5,(gear('def')+6*tal('rinde')+(CL().block||0))/100);
 const spLv=sp=>CL().early&&CL().early[sp.id]?1:sp.lv,spMp=sp=>sp.mp-(CL().cheap&&CL().cheap[sp.id]||0);
 const talPts=()=>Math.max(0,player.lv-1-Object.values(RPG.tal).reduce((a,b)=>a+b,0));
 function recomputeStats(){const want=tal('zaeh')+2*tal('wald')+gear('hp');player.maxHp+=want-RPG.bonusHp;RPG.bonusHp=want;player.hp=Math.min(player.hp,player.maxHp);RPG.mp=Math.min(RPG.mp,maxMp());updHUD();applyWeaponLook();}
 const pick=a=>a[Math.random()*a.length|0];
 function regionTier(x,z){return[1,2,3,4,3,4,4][domReg(x,z)]+(F.zor?1:0);}
-function rollRar(bonus=0){const r=Math.random()*(1+.15*tal('gold'))+bonus;return r>1.05?3:r>.93?2:r>.68?1:0;}
+/* Grundchancen: Gewöhnlich 70 %, Selten 22 %, Episch 6,5 %, Legendär 1,5 %. Glück und Boni verschieben nur leicht. */
+function rollRar(bonus=0){const r=Math.random()+.03*tal('gold')+bonus*.4;return r>.985?3:r>.92?2:r>.7?1:0;}
 function makeItem(tier,rar,slot){slot=slot||pick(Object.keys(SLOTS));if(rar===undefined)rar=rollRar();const S=SLOTS[slot],Rr=RAR[rar],st={};
   st[S.main]=Math.max(1,Math.round(AFF[S.main].f(tier)*Rr.m));const pool=Object.keys(AFF).filter(k=>k!==S.main);let best=null;
   for(let i=0;i<Rr.a-1&&pool.length;i++){const k=pool.splice(Math.random()*pool.length|0,1)[0];st[k]=Math.max(1,Math.round(AFF[k].f(tier)*R(.7,1.1)*Rr.m*.8));if(!best)best=k;}
@@ -1996,12 +2023,13 @@ function dropItem(it,x,z){const g=new THREE.Group();g.position.set(x+R(-1.5,1.5)
 function rollLoot(e,c){if(!c||e.type==='static'||e.noXp)return;const t=e.lootTier||regionTier(c.x,c.z);
   if(e.type==='boss'){if(e.name==='Schleimgurgel')dropItem({id:RPG.uid++,slot:'stab',r:3,name:'Schleimgurgels Kochlöffel',st:{dmg:4,krit:10,regen:30},lvl:t,val:200},c.x,c.z);
     else dropItem({id:RPG.uid++,slot:'hut',r:3,name:'Zorgrimms Leopardenkrone',st:{hp:4,mp:8,def:10,gold:25},lvl:t,val:300},c.x,c.z);
-    for(let i=0;i<2;i++)dropItem(makeItem(t+1,Math.max(2,rollRar(.2))),c.x,c.z);return;}
-  if(e.elite){dropItem(makeItem(t,Math.max(1,rollRar(.25))),c.x,c.z);return;}
-  if(Math.random()<.13*(1+.15*tal('gold')+gear('gold')/100))dropItem(makeItem(t),c.x,c.z);}
-function rpgEnemy(e){const t=regionTier(e.g.position.x,e.g.position.z);e.lvl=t;const sc=1+(t-1)*.5;e.hp=e.max=Math.round(e.hp*sc);
-  e.xp=Math.round((XPT[e.type]||5)*(1+(t-1)*.6));e.gold=Math.round((GOLDT[e.type]||2)*(1+(t-1)*.5));
-  if(Math.random()<.08){e.elite=1;e.hp=e.max=e.hp*3;e.xp*=3;e.gold*=3;e.bs*=1.35;e.g.scale.setScalar(e.bs);e.r*=1.3;const gl=glow(0xffc020,3.2);gl.position.y=e.hitY||1;e.g.add(gl);}}
+    dropItem(makeItem(t+1,Math.max(1,rollRar(.3))),c.x,c.z);return;}
+  if(e.elite){if(Math.random()<.35)dropItem(makeItem(t,rollRar(.15)),c.x,c.z);return;}
+  if(Math.random()<.06*(1+.1*tal('gold')+gear('gold')/200))dropItem(makeItem(t),c.x,c.z);}
+function rpgEnemy(e){const x=e.g.position.x,z=e.g.position.z,t=regionTier(x,z),S=REGSTR[domReg(x,z)]||REGSTR[0],post=F.zor?1.35:1;e.lvl=t;
+  e.hp=e.max=Math.round(e.hp*S.hp*post);e.dmg=S.dm+(F.zor&&S.dm>1?1:0);if(e.speed)e.speed*=S.sp;
+  e.xp=Math.round((XPT[e.type]||5)*S.rw*post);e.gold=Math.round((GOLDT[e.type]||2)*S.rw);
+  if(Math.random()<.08){e.elite=1;e.hp=e.max=e.hp*3;e.xp*=3;e.gold*=3;e.dmg++;e.bs*=1.35;e.g.scale.setScalar(e.bs);e.r*=1.3;const gl=glow(0xffc020,3.2);gl.position.y=e.hitY||1;e.g.add(gl);}}
 
 /* Schaden, Krit, Schadenszahlen */
 const nums=[];
@@ -2540,7 +2568,7 @@ function waspE(x,y,z){const g=new THREE.Group();g.position.set(x,y,z);world.add(
 /* ---------- Gesuchte Schurken ---------- */
 function buildMinis(){WORLD.minis=[];MINIS.forEach((m,i)=>{if(F.mini[i])return;const y=H(m.x,m.z);if(!isFinite(y))return;
   const e=m.k==='knight'?knightE(m.x,m.z,true):goblinE(m.x,m.z,m.k);const k=m.k==='knight'?1.4:m.k==='frost'?2.8:2.2;e.bs*=k;e.g.scale.setScalar(e.bs);e.r*=k;e.hitY*=k;
-  e.hp=e.max=m.hp;e.xp=70;e.gold=60;e.elite=1;e.noRespawn=1;e.mini=m.n;e.focus=null;const gl=glow(0xffc020,3);gl.position.y=1.5;e.g.add(gl);
+  e.hp=e.max=m.hp*4;e.dmg=2;if(e.speed)e.speed*=1.2;e.xp=70;e.gold=60;e.elite=1;e.noRespawn=1;e.mini=m.n;e.focus=null;const gl=glow(0xffc020,3);gl.position.y=1.5;e.g.add(gl);
   const lab=newSprite(0,7,1.75);setSpriteTex(lab,textTex(m.n,320,80,'bold 30px Georgia','#ffc83d'));world.add(lab);
   e.onDie=()=>{F.mini[i]=1;world.remove(lab);toast(`${m.n} besiegt!`);flash('#ffd080',.4);save();};WORLD.minis.push({e,lab,i});});}
 
@@ -2615,7 +2643,7 @@ function moreTick(dt){
   if(WORLD.lhBeam&&WORLD.lhBeam.visible)WORLD.lhBeam.rotation.y+=dt*.7;
   if(!WORLD.minis)return;if(state!=='play'){for(const m of WORLD.minis)m.lab.visible=false;return;}let near=null,nd=45;
   for(const m of WORLD.minis){const e=m.e;if(e.hp<=0)continue;const p=e.g.position;m.lab.position.set(p.x,p.y+(e.hitY||1)*1.1+4.5,p.z);const d=Math.hypot(p.x-player.pos.x,p.z-player.pos.z);m.lab.visible=d<110;
-    if(d<nd){nd=d;near=e;}if(d<e.bs*.9+.6&&e.type==='goblin')hurt(1);}
+    if(d<nd){nd=d;near=e;}if(d<e.bs*.9+.6&&e.type==='goblin')hurt(e.dmg||1);}
   if(near&&(!activeBoss||activeBoss.mini)){if(activeBoss!==near){activeBoss=near;$('boss').hidden=false;$('bossName').textContent=near.mini;updHUD();}}
   else if(!near&&activeBoss&&activeBoss.mini){activeBoss=null;$('boss').hidden=true;}}
 
@@ -2823,7 +2851,10 @@ function renderSet(){const L=$('setL');L.textContent='';const tb=el('div','set-t
   L.appendChild(el('h3','','Grafik'));L.appendChild(el('p','sk-help','Weniger Wackeln und mehr Auflösung sehen ruhiger aus, brauchen aber mehr Leistung. Beim Ändern lädt das Spiel kurz neu, dein Spielstand bleibt erhalten.'));
   const gr=el('div','row2');[['Retro','Starkes PS1-Wackeln, niedrige Auflösung, am schnellsten'],['Ausgewogen','Leichtes Wackeln, schärfer (Standard)'],['Scharf','Kein Wackeln, volle Auflösung, braucht am meisten Leistung']].forEach(([n,d],i)=>{const b=el('button','opt'+(GFX===i?' on':''));b.type='button';b.appendChild(el('b','',n));b.appendChild(el('small','',d));
     b.onclick=()=>{if(i===GFX)return;try{localStorage.setItem('sf-gfx',String(i));}catch(e){}if(state!=='title')save();location.reload();};gr.appendChild(b);});L.appendChild(gr);
-  L.appendChild(el('h3','','Kamera (Taste V)'));const cr=el('div','row2');CAMN.forEach((n,i)=>{const b=el('button','opt'+(camMode===i?' on':''));b.type='button';b.appendChild(el('b','',n));b.appendChild(el('small','',['Hinter Fennick','Weiter Überblick','Nah über der Schulter','Durch Fennicks Augen','Von hoch oben'][i]));b.onclick=()=>{setCamMode(i);renderSet();};cr.appendChild(b);});L.appendChild(cr);}
+  L.appendChild(el('h3','','Kamera (Taste V)'));const cr=el('div','row2');CAMN.forEach((n,i)=>{const b=el('button','opt'+(camMode===i?' on':''));b.type='button';b.appendChild(el('b','',n));b.appendChild(el('small','',['Hinter Fennick','Weiter Überblick','Nah über der Schulter','Durch Fennicks Augen','Von hoch oben'][i]));b.onclick=()=>{setCamMode(i);renderSet();};cr.appendChild(b);});L.appendChild(cr);
+  L.appendChild(el('h3','','Spieltempo'));L.appendChild(el('p','sk-help','Wie schnell du aufsteigst, wie oft Gegner nachkommen, wie schnell du läufst und zauberst. Wirkt sofort, dein Spielstand bleibt erhalten.'));
+  const tr=el('div','row2');TEMPOS.forEach((t,i)=>{const b=el('button','opt'+(TEMPO===t?' on':''));b.type='button';b.appendChild(el('b','',t.n));b.appendChild(el('small','',t.d));
+    b.onclick=()=>{TEMPO=t;try{localStorage.setItem('sf-tempo',String(i));}catch(e){}updHUD();renderSet();toast('Spieltempo: '+t.n);};tr.appendChild(b);});L.appendChild(tr);}
 /* Einstellungen: Tab Steuerung (Tastenbelegung, Maus-Empfindlichkeit, Y-Achse) */
 let setTab='pro',sensV=null,invyV=null;
 function SENS(){if(sensV===null){try{const v=parseFloat(localStorage.getItem('sf-sens'));sensV=isFinite(v)?Math.max(.3,Math.min(2.5,v)):1;}catch(e){sensV=1;}}return sensV;}
@@ -2853,6 +2884,125 @@ function renderPro(L){L.appendChild(el('h3','','Name'));L.appendChild(el('p','sk
   const r=el('div','row2');const b1=el('button','btn','Klasse wechseln (O)');b1.type='button';b1.onclick=()=>{closeMenu('setP');openMenu('clsP',renderCls);};const b2=el('button','btn','Skins im Inventar (I)');b2.type='button';b2.onclick=()=>{closeMenu('setP');openMenu('invP',renderInv);};r.append(b1,b2);L.appendChild(r);}
 $('setBtn').onclick=()=>openMenu('setP',renderSet);$('setX').onclick=()=>closeMenu('setP');
 addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='Escape'&&!$('setP').hidden)closeMenu('setP');else if(e.code==='KeyP'&&(state==='play'||!$('setP').hidden))openMenu('setP',renderSet);});
+
+/* ===================== KAPITEL 2: DIE LANGE NACHT ===================== */
+/* Nach dem Erwachen der Sonne: Fennicks verschollener Meister Orlo, drei Schattensiegel mit Wächtern,
+   Sir Morwens Erinnerung, die Schattengruft und Orlos Rückkehr. Dazu acht Tagebuchseiten in der Welt. */
+{const _ff=freshFlags;freshFlags=function(){return Object.assign(_ff(),{c2:0,sg:[0,0,0],pg:[]});};F=freshFlags();}
+const N2={or:'Meister Orlo',st:'Stimme im Dunkeln',va:'Nachtfürst Varkhul'};
+const SEALS=[
+ {n:'Eisgolem Hrimgar',reg:'Frostzacken',x:-1130,z:-1120,kind:'golem',hp:2600,s:1.25,
+  vis:[[N2.st,'… Fennick? Nein. Ich träume schon wieder. Hier unten träumt man viel, und nichts davon ist warm.'],[N.nar,'Das Siegel im Eis zerspringt. Für einen Herzschlag riecht die Luft nach Pfeifentabak, wie früher in der Werkstatt.']]},
+ {n:'Schattenhexe Morra',reg:'Pilzwald',x:-1010,z:-80,kind:'ghost',hp:1500,s:1.6,
+  vis:[[N2.st,'… Der Hut. Trägst du ihn noch? Gut. Er schützt vor Schatten. Ein bisschen. Hauptsächlich vor Regen.'],[N.nar,'Die Pilze ringsum leuchten heller, als hätten sie die ganze Zeit den Atem angehalten.']]},
+ {n:'Knochenkönig Grausud',reg:'Giftsumpf',x:1080,z:-40,kind:'skel',hp:2100,s:1.8,
+  vis:[[N2.st,'… Varkhul frisst Träume, so wie Bodo Bier trinkt. Gierig und ohne Manieren. Bring ihm keine mit.'],[N.nar,'Der Sumpf blubbert erleichtert. Irgendwo quakt ein Frosch, zum ersten Mal seit Jahren.']]}];
+const PAGES=[
+ {x:8,z:-150,t:'Der Hut',b:'Heute habe ich Fennick meinen alten Sternenhut geschenkt. Er rutscht ihm bis über die Nase. Er wird hineinwachsen. Ich hoffe, ich bin dann noch da, um es zu sehen.'},
+ {x:-912,z:-212,t:'Flüstern im Wald',b:'Der Wurzelschrein flüstert nachts. Knorz sagt, er hat Angst vor Licht und vor Dunkelheit. Langsam glaube ich, er ist der Klügste von uns allen.'},
+ {x:60,z:-735,t:'Umbrath',b:'Umbrath behauptet, die Lichtbrücke trägt nur, wer Rätsel liebt. Ich habe die Runen mit Kreide nummeriert. Er hat drei Tage nicht mit mir geredet. Herrlich ruhige Tage.'},
+ {x:14,z:-1268,t:'Ein Schatten am Mond',b:'Vom Sternenschloss aus sah ich es deutlich: Ein Schatten wandert über den Mond und frisst Sterne. Nicht viele. Einen pro Nacht. Wie ein Feinschmecker.'},
+ {x:880,z:110,t:'Das zweite Herz',b:'Drei Siegel binden die Schattengruft an unsere Welt. Eines liegt hier im Sumpf. Ich spüre es pochen wie ein zweites Herz. Ein sehr schlecht gelauntes Herz.'},
+ {x:280,z:1045,t:'Zorgrimm hört zu',b:'Zorgrimm hört zu, wenn die Nacht flüstert. Ich habe ihn gewarnt. Er hat gelacht. Nur einer seiner Ritter hat nicht gelacht. Morwen hieß er, glaube ich.'},
+ {x:-835,z:-1075,t:'Das dritte Siegel',b:'Das Siegel im Eis lässt sich nicht brechen, nicht von mir. Ich bin alt geworden. Der Golem, der es bewacht, leider nicht.'},
+ {x:1104,z:1104,t:'Vor der Gruft',b:'Ich gehe hinein. Wer das hier findet: Varkhul nährt sich von gestohlenen Träumen. Ohne seine Siegel ist er nur ein Schatten in einer zu großen Rüstung. Fennick, falls du das bist: Zieh den Hut tiefer. Und hab keine Angst.'}];
+const C2SEAL=()=>SEALS.map((s,i)=>s.reg+(F.sg[i]?' ✓':' ✗')).join(' · ');
+function c2Obj(){switch(F.c2){
+  case 1:return'Frag Meister Umbrath an der Leuchtschlucht nach dem Mann mit deinem Hut.';
+  case 2:return'Brich die drei Schattensiegel und besiege ihre Wächter: '+C2SEAL();
+  case 3:return'Sprich mit Sir Morwen in Aschenmark über die Nacht, in der Orlo verschwand.';
+  case 4:return player.lv<30?`Werde stark genug für die Schattengruft im Südosten (Stufe ${player.lv}/30). Gegner in Aschenmark und den Frostzacken bringen am meisten Erfahrung.`:'Betritt die Schattengruft im Südosten und besiege Nachtfürst Varkhul.';
+  case 5:return'Triff Meister Orlo am Brunnen von Butterbühl.';}return'Orlo ist wieder zu Hause.';}
+/* ---------- Welt: Siegel, Wächter, Tagebuchseiten, Orlo ---------- */
+function buildStory(){WORLD.seals=[];
+  SEALS.forEach((s,i)=>{const y=H(s.x,s.z);if(!isFinite(y))return;try{reserve(s.x,s.z,16);}catch(e){}
+    const g=new THREE.Group();g.position.set(s.x,y,s.z);world.add(g);const fb=new THREE.Group();g.add(fb);
+    P(G.box,M('sealSt',()=>lam({map:T.dark(1,3),color:0x9a90b0})),fb,0,3.5,0,1.8,7,1.8);P(G.box,M('sealBase',()=>lam({map:T.stone(2,1)})),fb,0,.4,0,4.5,.8,4.5);
+    const cr=P(G.oct,M('sealCr',()=>lam({color:0xd8a0ff,emissive:0x7020c0})),g,0,9.9,0,1,1.6,1);const gl=glow(0xb050ff,6);gl.position.y=9.9;g.add(gl);
+    withMdl('siegel',m=>{if(!g.parent)return;fb.visible=false;g.add(m.clone(true));});props.push({x:s.x,z:s.z,r:2.6});
+    const S={g,cr,gl,i,broken:!!F.sg[i]};WORLD.seals.push(S);if(S.broken){cr.visible=gl.visible=false;return;}
+    const ex=s.x+6,ez=s.z+6,o={name:s.n,hp:s.hp,xp:900,gold:260,lootTier:8,dmg:2};
+    const e=s.kind==='golem'?golemE(ex,ez,o):s.kind==='ghost'?ghostE(ex,ez,Object.assign(o,{speed:6.5})):skelE(ex,ez,Object.assign(o,{speed:5}));
+    e.g.scale.setScalar(s.s);e.bs=s.s;e.r*=s.s;e.hitY*=s.s;e.elite=1;e.mini=s.n;
+    const lab=newSprite(0,7,1.75);setSpriteTex(lab,textTex(s.n,320,80,'bold 30px Georgia','#d8a0ff'));world.add(lab);
+    e.onDie=()=>{world.remove(lab);breakSeal(i,e);};(WORLD.minis=WORLD.minis||[]).push({e,lab,i:-1});});
+  PAGES.forEach((p,i)=>{if(F.pg.includes(i))return;const y=H(p.x,p.z);if(!isFinite(y))return;const g=new THREE.Group();g.position.set(p.x,y+1.1,p.z);world.add(g);
+    const pm=M('pageM',()=>lam({color:0xf0e2b8,emissive:0x2a2010}));P(G.box,pm,g,0,0,0,.75,.04,1);P(G.box,pm,g,.08,.05,.05,.7,.04,.95).rotation.y=.2;
+    P(G.box,basic(0x6a3aa0),g,0,.08,-.3,.5,.03,.08);g.add(glow(0xc890ff,2.6));pickups.push({g,kind:'page',id:i});});
+  WORLD.orlo=null;if(F.c2>=5)spawnOrlo();}
+function spawnOrlo(){if(WORLD.orlo||!world)return;const x=-6,z=9;
+  const v=namedVillager(x,z,232,1.2,v=>{P(G.cone,M('orloHat',()=>lam({map:T.robe(1),color:0x8a7aff})),v,0,3.05,0,.55,1.6,.55);P(G.cone,M('beard2',()=>lam({color:0xc8c8d8})),v,0,1.1,.25,.3,.8,.25).rotation.x=PI;});
+  v.rotation.y=PI*.8;WORLD.orlo=v;npc('orlo',N2.or,v,()=>talkOrlo(),4);}
+function breakSeal(i,e){if(F.sg[i])return;F.sg[i]=1;const S=(WORLD.seals||[])[i],s=SEALS[i];
+  if(S){S.broken=true;S.cr.visible=S.gl.visible=false;burst(S.g.position.clone().setY(S.g.position.y+9.9),0xb050ff);}
+  flash('#b050ff',.55);beep(196,.5,'sawtooth',.07);setTimeout(()=>beep(131,.8,'sine',.07),250);
+  const c=e.g.position;dropItem(makeItem(7,Math.max(1,rollRar(.25))),c.x,c.z);
+  const n=F.sg.filter(Boolean).length;toast(`Schattensiegel ${n}/3 gebrochen`);
+  const lines=F.c2>=1?s.vis.slice():[[N.nar,'Das Siegel zerspringt mit einem Geräusch wie brechendes Eis. Tief unter der Erde, irgendwo im Südosten, knurrt etwas.']];
+  if(F.c2===2&&n===3)lines.push([N.nar,'Alle drei Siegel sind gebrochen. Im Südosten bebt die Erde über der Schattengruft.'],[N.fen,'Sir Morwen war damals in Zorgrimms Burg. Wenn jemand weiß, was in jener Nacht geschah, dann er.']);
+  dialog(lines,()=>{if(F.c2===2&&n===3){F.c2=3;toast('Hauptquest aktualisiert: Die lange Nacht');}grant(250,120);});save();}
+PICK.page=s=>{if(F.pg.includes(s.id))return;F.pg.push(s.id);const p=PAGES[s.id],n=F.pg.length;flash('#c890ff',.3);
+  dialog([['Orlos Tagebuch',`„${p.t}“ — ${p.b}`]],()=>{toast(`Tagebuchseite ${n}/${PAGES.length}`);if(n===PAGES.length){player.maxHp++;player.hp=player.maxHp;grant(200,150,'Orlos Tagebuch vollständig: +1 Herz');}else grant(25,0);});};
+/* ---------- Gespräche ---------- */
+{const _ts=talkSol;talkSol=function(){if(!F.end){_ts();return;}
+  if(F.c2===0)dialog([[N.sol,'Guten Morgen, kleiner Zauberer. Ich bin so wach wie seit hundert Jahren nicht mehr.'],[N.sol,'Aber eins muss ich dir erzählen. Mein letzter Traum, kurz vor dem Aufwachen, war kalt. Ganz kalt.'],
+    [N.sol,'Ich sah einen alten Mann in einer Gruft aus Schatten. Er trug einen Hut wie deinen, nur ohne Hut. Also, ohne den Hut. Er rief deinen Namen.'],
+    [N.fen,'Meister Orlo! Er ist vor sieben Jahren verschwunden. Alle sagen, er sei tot.'],[N.sol,'Tote rufen keine Namen. Frag den alten Grummel an der Leuchtschlucht. Umbrath kennt die Nacht besser als ich. Ich schlafe ja meistens durch.']],
+    ()=>{F.c2=1;toast('Neue Hauptquest: Die lange Nacht');save();});
+  else if(F.c2<6)dialog(say(N.sol,'Ich halte ein Auge auf die Nacht. Beide Augen sogar. '+c2Obj()));
+  else dialog(say(N.sol,'Orlo hat mir ein Pfeifchen angeboten. Ich habe abgelehnt. Ich rauche schon genug.'));};}
+{const _tu=talkUmbrath;talkUmbrath=function(){
+  if(F.c2===1)dialog([[N.um,'Orlo Sternenhut. Mein alter Rivale. Ein Mann, der Runen mit Kreide nummeriert. Barbarisch.'],
+    [N.um,'Vor sieben Jahren ging er in die Schattengruft im Südosten, um den Nachtfürsten Varkhul zu bannen. Er kam nicht zurück.'],
+    [N.um,'Varkhul war es, der Zorgrimm einflüsterte, die Träume der Sonne zu stehlen. Ohne Sonne wird die Nacht ewig, und in einer ewigen Nacht ist er König.'],
+    [N.um,'Drei Schattensiegel binden seine Gruft an unsere Welt: eines im Eis der Frostzacken, eines tief im Pilzwald, eines im Giftsumpf. Jedes hat einen Wächter.'],
+    [N.um,'Solange die Siegel stehen, schöpft Varkhul Kraft aus ihnen. Brich sie, Lehrling. Und dann sieh nach, ob in der Gruft noch jemand Kreide braucht.']],
+    ()=>{F.c2=F.sg.every(Boolean)?3:2;toast('Hauptquest aktualisiert: Die lange Nacht');save();});
+  else if(F.c2===2)dialog(say(N.um,'Die Siegel: '+C2SEAL()+'. Die Wächter sind keine Fledermäuse. Nimm Tränke mit.'));
+  else if(F.c2>=3&&F.c2<6)dialog(say(N.um,F.c2===5?'Orlo lebt? Hmpf. Sag ihm, ich habe die Kreide weggewischt.':'Die Siegel sind gebrochen. Ich spüre es in den Knochen. Oder es ist das Wetter.'));
+  else _tu();};}
+{const _tm=talkMorwen;talkMorwen=function(){
+  if(F.c2===3)dialog([[N.mo,'Orlo Sternenhut. Ja. Ich erinnere mich an die Nacht, in der er zur Burg kam.'],
+    [N.mo,'Er wollte Zorgrimm warnen. Varkhul stand im Schatten hinter dem Thron, ich habe ihn selbst gesehen. Zorgrimm hat Orlo ausgeliefert, als wäre er ein Sack Kohlen.'],
+    [N.mo,'An jenem Abend habe ich mein Schwert niedergelegt. Darum der Käfig. Ich habe es nie bereut.'],
+    [N.mo,'Nimm das hier. Es ist das Einzige, was ich aus meiner Ritterzeit behalten habe. Möge es dich in der Gruft beschützen.'],[N.nar,'Morwen reicht Fennick ein verbeultes Amulett mit einem eingeritzten Sonnenwappen.']],
+    ()=>{F.c2=4;addItem({id:RPG.uid++,slot:'amu',r:3,name:'Morwens Ehrenwort',st:{hp:3,def:12,regen:25,mp:6},lvl:7,val:900});grant(150,0,'Hauptquest aktualisiert: Die lange Nacht');});
+  else if(F.c2===4)dialog(say(N.mo,player.lv<30?'Die Gruft wird dich zerreißen, wenn du jetzt hineingehst. Werde stärker. Stufe 30, mindestens.':'Du bist bereit. Die Gruft liegt im Südosten. Bring ihn heim.'));
+  else _tm();};}
+function talkOrlo(){
+  if(F.c2===5)dialog([[N2.or,'Fennick. Du bist gewachsen. Der Hut passt dir jetzt fast.'],[N2.or,'Sieben Jahre in einem Käfig aus Schatten. Weißt du, was das Schlimmste war? Varkhul summt. Die ganze Zeit. Falsch.'],
+    [N.fen,'Ich hab dein Tagebuch gefunden. Also … Teile davon.'],[N2.or,'Dann weißt du ja, dass ich Umbrath nicht leiden kann. Gut. Ein Geheimnis weniger.'],
+    [N2.or,'Ich habe nichts mehr, was ich dir beibringen könnte. Nur noch das hier. Mein Sternenhut. Der echte. Der, den du trägst, war der Ersatzhut.'],
+    [N.nar,'Orlo setzt Fennick einen Hut auf, der nach Sternenstaub und ein wenig nach Pfeifentabak riecht.'],
+    [N2.or,'Varkhul wird wiederkehren. Das tut er immer. Aber jetzt weiß er, wer ihn aufhält.']],
+    ()=>{F.c2=6;addItem({id:RPG.uid++,slot:'hut',r:4,name:'Orlos Sternenhut',st:{hp:5,mp:12,krit:15,regen:40,def:10},lvl:9,val:3000});grant(500,300,'Kapitel 2 abgeschlossen: Die lange Nacht');
+      setTimeout(()=>{const E=$('end');E.querySelector('h1').textContent='Die lange Nacht ist vorbei';E.querySelector('p').textContent='Meister Orlo sitzt wieder am Brunnen von Butterbühl, raucht Pfeife und streitet mit Umbrath per Brieftaube. Die Schattengruft steht noch, und manchmal summt es darin. Falsch. Erkunde die Welt weiter, sammle die restlichen Seiten seines Tagebuchs oder fordere den Nachtfürsten erneut heraus.';state='menu';E.hidden=false;},2500);});
+  else dialog(say(N2.or,['Umbrath hat mir einen Brief geschrieben. Drei Seiten über Kreide. Ich antworte mit vier.','Die Sonne grüßt mich jeden Morgen. Man gewöhnt sich daran.','Wenn du alle Seiten meines Tagebuchs findest, lies sie bitte nicht laut vor. Besonders nicht die über Umbrath.'][Math.floor(Math.random()*3)]));}
+/* ---------- Gruft: Varkhul stärker mit intakten Siegeln, Orlo nach dem Sieg ---------- */
+{const _le=lordE;lordE=function(x,z){const e=_le(x,z);const open=F.sg.filter(b=>!b).length;if(open){e.hp=e.max=Math.round(e.hp*(1+.25*open));setTimeout(()=>toast(`${open} Schattensiegel stärken den Nachtfürsten!`),2500);}return e;};}
+{const _dv=dgVictory;dgVictory=function(b){_dv(b);if(F.c2!==4)return;
+  dq.push([N.nar,'Hinter dem Thron hängt ein Käfig aus Schatten. Mit dem Nachtfürsten zerfällt auch er.'],[N2.or,'… Wer da? Ist das … mein Hut?'],[N.fen,'Meister Orlo!'],
+    [N2.or,'Fennick? Bei allen Sternen. Lass uns hier verschwinden, bevor er sich wieder zusammensetzt. Wir sehen uns am Brunnen in Butterbühl.']);
+  dcb=()=>{F.c2=5;spawnOrlo();toast('Hauptquest aktualisiert: Die lange Nacht');save();};};}
+/* ---------- Questbuch, Marker, Ziele ---------- */
+{const _ql=questList;questList=function(){const q=_ql();
+  if(F.c2)q.splice(1,0,{t:'Die lange Nacht',tag:'Hauptquest · Kapitel 2',done:F.c2>=6,d:c2Obj()});
+  if(F.pg.length)q.push({t:'Orlos Tagebuch',tag:'Chronik',done:F.pg.length>=PAGES.length,d:`Seiten gefunden: ${F.pg.length}/${PAGES.length}. Sie leuchten violett und liegen in jeder Region eine. Die gefundenen Seiten stehen unten im Questbuch.`});
+  return q;};}
+{const _mf=markFor;markFor=function(id){
+  if(id==='sol'&&F.end&&F.c2===0)return'!';if(id==='umbrath'&&F.c2===1)return'!';if(id==='morwen'&&F.c2===3)return'!';if(id==='orlo')return F.c2===5?'?':'';return _mf(id);};}
+function c2Targets(){const NP=id=>npcs[id]?[npcs[id].g.position.x,npcs[id].g.position.z]:null;
+  switch(F.c2){case 0:return F.end?[NP('sol')]:[];case 1:return[NP('umbrath')];case 2:return SEALS.filter((s,i)=>!F.sg[i]).map(s=>[s.x,s.z]);
+    case 3:return[NP('morwen')];case 4:return[[GRUFT.x,GRUFT.z]];case 5:return[NP('orlo')];}return[];}
+{const _qt=questTargets;questTargets=function(){const tq=trackedQ();
+  if(tq&&tq.t==='Die lange Nacht')return c2Targets().filter(Boolean);
+  if(tq&&tq.t==='Orlos Tagebuch')return pickups.filter(p=>p.kind==='page').map(p=>[p.g.position.x,p.g.position.z]);
+  const t=_qt();if(!tq)t.push(...c2Targets().filter(Boolean));return t;};}
+{const _rl=renderLog;renderLog=function(){_rl();if(!F.pg.length)return;const d=document.createElement('details');d.className='q';d.style.marginTop='10px';
+  d.innerHTML='<summary style="cursor:pointer"><b>Orlos Tagebuch</b> ('+F.pg.length+'/'+PAGES.length+')</summary>'+F.pg.slice().sort((a,b)=>a-b).map(i=>`<p><b>${PAGES[i].t}.</b> ${PAGES[i].b}</p>`).join('');$('logL').appendChild(d);};}
+ANIM.story=()=>{for(const S of WORLD.seals||[])if(!S.broken){S.cr.rotation.y=time*1.2;S.cr.position.y=9.9+Math.sin(time*2+S.i)*.35;}};
+
+function storyReserve(){for(const s of SEALS)reserve(s.x,s.z,16);}
 
 L=WORLD;buildAll();player.pos.set(0,0,16);state='title';
 loop();
