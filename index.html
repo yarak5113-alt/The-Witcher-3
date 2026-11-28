@@ -1933,6 +1933,7 @@ if(touchMode){let ek=0;$('bEmote').addEventListener('contextmenu',e=>{e.preventD
 
 /* ================= SPIEL-LOG / UPDATES ================= */
 const CHANGELOG=[
+ {v:'1.9.1',t:'Die lange Nacht ab Stufe 20',d:'28.11.2026',items:['Kapitel 2 lässt sich jetzt ab Stufe 20 abschließen: Vor der Schattengruft stellt sich dir Varkhuls Schatten in den Weg. Besiegst du ihn, ist Meister Orlo frei.','Die Schattengruft selbst und der echte Nachtfürst bleiben die Herausforderung ab Stufe 30.']},
  {v:'1.9',t:'Kampf 2.0',d:'28.11.2026',items:['Ausweichrolle mit V oder Rechtsklick (am Handy: Knopf „Rolle“). Sie kostet Ausdauer (grüner Balken unter dem Mana). Während der Rolle trifft dich nichts.','Perfektes Ausweichen: Wer im letzten Moment rollt, verlangsamt kurz die Zeit und macht 3 Sekunden lang 60 % mehr Schaden.','Treffer fühlen sich jetzt an: kurzer Trefferstopp, Rückstoß, Gegner blitzen weiß auf, Kamerawackeln bei Krits und schweren Treffern.','Rote Warnkreise am Boden zeigen, wo Golems, Skelette, Ritter und der Nachtfürst gleich zuschlagen.','Jede Klasse kämpft anders: Sonnenritter mit 3er-Schwertcombo und Sonnenwelle, Feuerhexer lädt Glutschüsse auf (F halten), Sternenmagier mit Kettenblitz, Mooshüter hält Gegner mit Ranken fest, Glücksstrolch trifft von hinten doppelt und kritisch nach dem Ausweichen.','Schneller aufsteigen: Stufe 30 braucht nur noch etwa halb so viele EP, und Gegner geben dreimal so viele EP wie bisher.','Wachere Gegner: Wer getroffen wird, alarmiert seine Nachbarn und verfolgt dich weiter. Kobolde tänzeln und springen dich an, Skelette und Ritter weichen Schüssen aus, Geister und der Nachtfürst zielen dorthin, wo du gleich sein wirst.']},
  {v:'1.8',t:'Die lange Nacht',d:'28.11.2026',items:['Kapitel 2 der Hauptquest: Nach dem Erwachen der Sonne suchst du Fennicks verschollenen Meister Orlo. Drei Schattensiegel mit eigenen Wächter-Bossen, Sir Morwens Erinnerung, die Schattengruft und ein Epilog mit Orlos Sternenhut.','Orlos Tagebuch: Acht violett leuchtende Seiten liegen in der Welt, eine pro Region. Gefundene Seiten kannst du im Questbuch nachlesen.','Neue Texturen für Häuser, Dächer, Pflaster, Mauern, Stein, Rinde, Eisen und Gold, in Blender als echtes Relief gerendert.','Die Bewohner von Butterbühl und alle benannten Figuren sind jetzt richtige 3D-Figuren statt Kegelmännchen.','Items droppen seltener, und hohe Seltenheiten sind deutlich seltener. Legendär kommt nur noch in etwa 1,5 % der Fälle.']},
  {v:'1.7',t:'Tempo, Gegner und Bosse',d:'28.11.2026',items:['Spieltempo in den Einstellungen (Grafik & Kamera): Entspannt, Normal oder Schnell.','Gegner werden je Gebiet stärker: mehr Leben, mehr Schaden und schneller, je weiter du dich von Butterbühl entfernst.','Schleimgurgel, Zorgrimm und die Steckbrief-Bosse halten deutlich mehr aus und schlagen härter zu.','Leuchtschlucht: Die schlafenden Brückenplatten sind halb durchsichtig, bis Meister Umbraths Runenrätsel gelöst ist. Die erweckte Brücke hat großzügigere Kanten.']},
@@ -2913,7 +2914,7 @@ function c2Obj(){switch(F.c2){
   case 1:return'Frag Meister Umbrath an der Leuchtschlucht nach dem Mann mit deinem Hut.';
   case 2:return'Brich die drei Schattensiegel und besiege ihre Wächter: '+C2SEAL();
   case 3:return'Sprich mit Sir Morwen in Aschenmark über die Nacht, in der Orlo verschwand.';
-  case 4:return player.lv<30?`Werde stark genug für die Schattengruft im Südosten (Stufe ${player.lv}/30). Gegner in Aschenmark und den Frostzacken bringen am meisten Erfahrung.`:'Betritt die Schattengruft im Südosten und besiege Nachtfürst Varkhul.';
+  case 4:return player.lv<20?`Werde stark genug, um Varkhuls Schatten vor der Schattengruft im Südosten zu stellen (Stufe ${player.lv}/20). Gegner in Aschenmark und den Frostzacken bringen am meisten Erfahrung.`:'Geh zur Schattengruft im Südosten. Vor dem Tor hält Varkhuls Schatten Meister Orlo gefangen.';
   case 5:return'Triff Meister Orlo am Brunnen von Butterbühl.';}return'Orlo ist wieder zu Hause.';}
 /* ---------- Welt: Siegel, Wächter, Tagebuchseiten, Orlo ---------- */
 function buildStory(){WORLD.seals=[];
@@ -2931,7 +2932,7 @@ function buildStory(){WORLD.seals=[];
   PAGES.forEach((p,i)=>{if(F.pg.includes(i))return;const y=H(p.x,p.z);if(!isFinite(y))return;const g=new THREE.Group();g.position.set(p.x,y+1.1,p.z);world.add(g);
     const pm=M('pageM',()=>lam({color:0xf0e2b8,emissive:0x2a2010}));P(G.box,pm,g,0,0,0,.75,.04,1);P(G.box,pm,g,.08,.05,.05,.7,.04,.95).rotation.y=.2;
     P(G.box,basic(0x6a3aa0),g,0,.08,-.3,.5,.03,.08);g.add(glow(0xc890ff,2.6));pickups.push({g,kind:'page',id:i});});
-  WORLD.orlo=null;if(F.c2>=5)spawnOrlo();}
+  WORLD.orlo=null;WORLD.shade=null;if(F.c2>=5)spawnOrlo();}
 function spawnOrlo(){if(WORLD.orlo||!world)return;const x=-6,z=9;
   const v=namedVillager(x,z,232,1.2,v=>{P(G.cone,M('orloHat',()=>lam({map:T.robe(1),color:0x8a7aff})),v,0,3.05,0,.55,1.6,.55);P(G.cone,M('beard2',()=>lam({color:0xc8c8d8})),v,0,1.1,.25,.3,.8,.25).rotation.x=PI;});
   v.rotation.y=PI*.8;WORLD.orlo=v;npc('orlo',N2.or,v,()=>talkOrlo(),4);}
@@ -2969,7 +2970,7 @@ PICK.page=s=>{if(F.pg.includes(s.id))return;F.pg.push(s.id);const p=PAGES[s.id],
     [N.mo,'An jenem Abend habe ich mein Schwert niedergelegt. Darum der Käfig. Ich habe es nie bereut.'],
     [N.mo,'Nimm das hier. Es ist das Einzige, was ich aus meiner Ritterzeit behalten habe. Möge es dich in der Gruft beschützen.'],[N.nar,'Morwen reicht Fennick ein verbeultes Amulett mit einem eingeritzten Sonnenwappen.']],
     ()=>{F.c2=4;addItem({id:RPG.uid++,slot:'amu',r:3,name:'Morwens Ehrenwort',st:{hp:3,def:12,regen:25,mp:6},lvl:7,val:900});grant(150,0,'Hauptquest aktualisiert: Die lange Nacht');});
-  else if(F.c2===4)dialog(say(N.mo,player.lv<30?'Die Gruft wird dich zerreißen, wenn du jetzt hineingehst. Werde stärker. Stufe 30, mindestens.':'Du bist bereit. Die Gruft liegt im Südosten. Bring ihn heim.'));
+  else if(F.c2===4)dialog(say(N.mo,player.lv<20?'Varkhuls Schatten wird dich zerreißen, wenn du jetzt gehst. Werde stärker. Stufe 20, mindestens.':'Du bist bereit. Die Gruft liegt im Südosten, sein Schatten wartet vor dem Tor. Bring Orlo heim.'));
   else _tm();};}
 function talkOrlo(){
   if(F.c2===5)dialog([[N2.or,'Fennick. Du bist gewachsen. Der Hut passt dir jetzt fast.'],[N2.or,'Sieben Jahre in einem Käfig aus Schatten. Weißt du, was das Schlimmste war? Varkhul summt. Die ganze Zeit. Falsch.'],
@@ -2995,14 +2996,25 @@ function talkOrlo(){
   if(id==='sol'&&F.end&&F.c2===0)return'!';if(id==='umbrath'&&F.c2===1)return'!';if(id==='morwen'&&F.c2===3)return'!';if(id==='orlo')return F.c2===5?'?':'';return _mf(id);};}
 function c2Targets(){const NP=id=>npcs[id]?[npcs[id].g.position.x,npcs[id].g.position.z]:null;
   switch(F.c2){case 0:return F.end?[NP('sol')]:[];case 1:return[NP('umbrath')];case 2:return SEALS.filter((s,i)=>!F.sg[i]).map(s=>[s.x,s.z]);
-    case 3:return[NP('morwen')];case 4:return[[GRUFT.x,GRUFT.z]];case 5:return[NP('orlo')];}return[];}
+    case 3:return[NP('morwen')];case 4:return player.lv>=20?[[GRUFT.x,GRUFT.z]]:[];case 5:return[NP('orlo')];}return[];}
 {const _qt=questTargets;questTargets=function(){const tq=trackedQ();
   if(tq&&tq.t==='Die lange Nacht')return c2Targets().filter(Boolean);
   if(tq&&tq.t==='Orlos Tagebuch')return pickups.filter(p=>p.kind==='page').map(p=>[p.g.position.x,p.g.position.z]);
   const t=_qt();if(!tq)t.push(...c2Targets().filter(Boolean));return t;};}
 {const _rl=renderLog;renderLog=function(){_rl();if(!F.pg.length)return;const d=document.createElement('details');d.className='q';d.style.marginTop='10px';
   d.innerHTML='<summary style="cursor:pointer"><b>Orlos Tagebuch</b> ('+F.pg.length+'/'+PAGES.length+')</summary>'+F.pg.slice().sort((a,b)=>a-b).map(i=>`<p><b>${PAGES[i].t}.</b> ${PAGES[i].b}</p>`).join('');$('logL').appendChild(d);};}
-ANIM.story=()=>{for(const S of WORLD.seals||[])if(!S.broken){S.cr.rotation.y=time*1.2;S.cr.position.y=9.9+Math.sin(time*2+S.i)*.35;}};
+/* Finale von Kapitel 2 (ab Stufe 20): Varkhuls Schatten vor dem Gruft-Tor. Die Gruft selbst bleibt ab Stufe 30. */
+function spawnShade(){const x=GRUFT.x+GRUFT.fw.x*20,z=GRUFT.z+GRUFT.fw.z*20,e=lordE(x,z);e.name='Varkhuls Schatten';e.hp=e.max=1600;e.dmg=2;e.xp=1200;e.gold=300;e.lootTier=7;e.bs=.85;e.g.scale.setScalar(.85);e.r*=.85;e.hitY*=.85;
+  e.onDie=()=>{WORLD.shade=null;dialog([[N.nar,'Der Schatten zerreißt wie nasser Nebel. Mit ihm zerfällt der Käfig aus Dunkelheit, der neben dem Tor hing.'],[N2.or,'… Wer da? Ist das … mein Hut?'],[N.fen,'Meister Orlo!'],
+    [N2.or,'Fennick? Bei allen Sternen. Sein Schatten ist zurück in die Gruft geflohen. Varkhul selbst schläft tief da unten. Eines Tages, wenn du stark genug bist, holen wir ihn uns. Jetzt erst mal: Brunnen, Butterbühl, Pfeife.'],
+    [N.nar,'Die Schattengruft öffnet sich ab Stufe 30. Dort wartet der echte Nachtfürst.']],()=>{F.c2=5;spawnOrlo();toast('Hauptquest aktualisiert: Die lange Nacht');save();});};
+  WORLD.shade=e;flash('#2a0040',.6);beep(70,.8,'sawtooth',.07);
+  dialog([['Varkhuls Schatten','Der Lehrling. Mit dem Hut des alten Narren. Mein Körper schläft tief in der Gruft, aber mein Schatten genügt für dich.'],[N2.or,'Fennick! Lauf nicht weg! Also … lauf schon weg, aber seitlich! Er holt weit aus, bevor er zuschlägt!']]);}
+let shadeHint=0;
+ANIM.story=()=>{if(state==='play'&&F.c2===4&&!DG.on&&GRUFT.fw&&!WORLD.shade&&Math.hypot(player.pos.x-GRUFT.x,player.pos.z-GRUFT.z)<55){
+    if(player.lv>=20)spawnShade();else if(time>shadeHint){shadeHint=time+20;toast(`Varkhuls Schatten lauert am Tor. Komm mit Stufe 20 wieder (du bist Stufe ${player.lv}).`);}}
+  if(WORLD.shade&&WORLD.shade.hp>0&&Math.hypot(player.pos.x-GRUFT.x,player.pos.z-GRUFT.z)>140){WORLD.shade.hp=0;world.remove(WORLD.shade.g);WORLD.shade=null;if(activeBoss&&activeBoss.kind==='lord'){activeBoss=null;$('boss').hidden=true;}}
+for(const S of WORLD.seals||[])if(!S.broken){S.cr.rotation.y=time*1.2;S.cr.position.y=9.9+Math.sin(time*2+S.i)*.35;}};
 
 function storyReserve(){for(const s of SEALS)reserve(s.x,s.z,16);}
 
