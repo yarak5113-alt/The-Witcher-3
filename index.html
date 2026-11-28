@@ -522,8 +522,8 @@ function leaveDungeon(byPortal){if(!DG.on)return;DG.on=false;if(DG.grp)DG.grp.vi
   if(activeBoss&&activeBoss.kind==='lord'){activeBoss=null;$('boss').hidden=true;}
   shots.forEach(s=>world.remove(s.m));shots=[];
   if(byPortal&&GRUFT.ex!==undefined){player.pos.set(GRUFT.ex,H(GRUFT.ex,GRUFT.ez)+.5,GRUFT.ez);player.vy=0;player.check.copy(player.pos);flash('#000',.6);toast('Zurück an der Oberfläche');}save();}
-function extTick(dt){for(const k in ANIM)ANIM[k](dt);if(grass)grass.visible=!DG.on;if(state!=='play')return;dgTick(dt);gruftTick(dt);
-  if(!DG.on&&player.pos.x>1700&&GRUFT.ex!==undefined){player.pos.set(GRUFT.ex,H(GRUFT.ex,GRUFT.ez)+.5,GRUFT.ez);player.vy=0;player.check.copy(player.pos);}}
+function extTick(dt){for(const k in ANIM)ANIM[k](dt);if(grass)grass.visible=!(DG.on||FE.on);if(state!=='play')return;dgTick(dt);gruftTick(dt);
+  if(!DG.on&&!FE.on&&player.pos.x>1700&&GRUFT.ex!==undefined){player.pos.set(GRUFT.ex,H(GRUFT.ex,GRUFT.ez)+.5,GRUFT.ez);player.vy=0;player.check.copy(player.pos);}}
 
 function buildChar(g,robe,cls){cls=cls||'magier';if(CHARGLB[cls])return buildCharGLB(g,robe,cls);const mat=(k,c,e)=>M(k,()=>lam(e?{color:c,emissive:e}:{color:c}));
   const skin=mat('skin',0xffc8a0),eye=M('eye',()=>basic(0x120818)),gold=mat('buckle',0xffd040,0x402000),steel=mat('steel',0xc8ccd8),steelD=mat('steelD',0x6a7080),
@@ -1244,7 +1244,7 @@ function buildAll(){world.traverse(o=>{if(o.geometry&&!SHARED.has(o.geometry))o.
   try{
   const r0=REG[0];skyDome({top:r0.top,mid:r0.mid,bot:r0.bot,sc:r0.sc,spiral:r0.sp,stars:r0.st});WORLD.skyM=world.children[world.children.length-1];WORLD.skyM.scale.setScalar(.66);
   scene.fog=new THREE.Fog(r0.fog,r0.fn,r0.ff);setupLights(0xc0d0ff,0x305a20,0xfff0c0);
-  buildTerrain();buildVillage();buildForest();buildCanyon();buildStarCastle();buildSwamp();buildAsh();buildFrost();buildPOI();buildMore();buildGruft();storyReserve();buildNature();buildExtras();buildStory();flushBatches();
+  buildTerrain();buildVillage();buildForest();buildCanyon();buildStarCastle();buildSwamp();buildAsh();buildFrost();buildPOI();buildMore();buildGruft();storyReserve();buildNature();buildExtras();buildStory();buildFesteTor();flushBatches();
   if(F.end){spawnSkySun('happy');setSunMood(WORLD.sun,'happy');}else if(F.zor){spawnSkySun('evil');setSunMood(WORLD.sun,'evil');}else if(F.main>=2)setSunMood(WORLD.sun,'peek');
   for(const s of SPAWN){s.alive=[];s.cd=0;for(let i=0;i<Math.ceil(s.max*.6*TEMPO.sp);i++)spawnOne(s,true);}
   if(!mapBg)drawMapBg();
@@ -1365,7 +1365,7 @@ function pgEnsure(){if(pgA===props&&pgN===props.length)return;PG.clear();for(con
 /* Häuser als gedrehte Rechtecke: aus der nächsten Wand hinausschieben */
 function pushBox(p,o,dx,dz){const c=Math.cos(o.ry),s=Math.sin(o.ry),lx=dx*c-dz*s,lz=dx*s+dz*c,hx=o.bw/2+.55,hz=o.bd/2+.55;if(Math.abs(lx)>=hx||Math.abs(lz)>=hz)return;
   let nx=lx,nz=lz;if(hx-Math.abs(lx)<hz-Math.abs(lz))nx=(lx<0?-1:1)*hx;else nz=(lz<0?-1:1)*hz;p.x=o.x+nx*c+nz*s;p.z=o.z-nx*s+nz*c;}
-function constrain(p){const b=p.x>1700?DGB:WORLD.bounds;p.x=Math.max(b.x0,Math.min(b.x1,p.x));p.z=Math.max(b.z0,Math.min(b.z1,p.z));pgEnsure();
+function constrain(p){const b=p.x>2300?FEB:p.x>1700?DGB:WORLD.bounds;p.x=Math.max(b.x0,Math.min(b.x1,p.x));p.z=Math.max(b.z0,Math.min(b.z1,p.z));pgEnsure();
   for(let it=0;it<3;it++){const near=PG.get(Math.floor(p.x/PGC)*4096+Math.floor(p.z/PGC));
   if(near)for(const o of near){const dx=p.x-o.x,dz=p.z-o.z;if(Math.abs(dx)>o.r+1||Math.abs(dz)>o.r+1)continue;if(o.bw){pushBox(p,o,dx,dz);continue;}const d=Math.hypot(dx,dz);if(d<o.r+.6&&d>0){p.x=o.x+dx/d*(o.r+.6);p.z=o.z+dz/d*(o.r+.6);}}}
   for(const k of blockers){if(p.x>k.x0&&p.x<k.x1&&p.z>k.z0&&p.z<k.z1){const o=[p.x-k.x0,k.x1-p.x,p.z-k.z0,k.z1-p.z],m=Math.min(...o);if(m===o[0])p.x=k.x0;else if(m===o[1])p.x=k.x1;else if(m===o[2])p.z=k.z0;else p.z=k.z1;}}}
@@ -1407,7 +1407,9 @@ function bossAI(e,dt){const p=e.g.position;const inArena=e===WORLD.zor?(player.p
 const cur={top:new THREE.Color(),mid:new THREE.Color(),bot:new THREE.Color(),sc:new THREE.Color(),fog:new THREE.Color(),sp:0,st:0,fn:60,ff:200,storm:0,init:false};
 const tgt={top:new THREE.Color(),mid:new THREE.Color(),bot:new THREE.Color(),sc:new THREE.Color(),fog:new THREE.Color(),sp:0,st:0,fn:0,ff:0,storm:0};
 const EVIL=new THREE.Color('#a00800');
-function regionTarget(){if(DG.on){for(const k of['top','mid','bot','sc'])tgt[k].set('#0e0816');tgt.fog.set('#140a20');tgt.sp=tgt.st=tgt.storm=0;tgt.fn=30;tgt.ff=150;
+function regionTarget(){if(FE.on){tgt.top.set('#1a0604');tgt.mid.set('#2a0a06');tgt.bot.set('#3a1008');tgt.sc.set('#ff6020');tgt.fog.set('#2a0a06');tgt.sp=tgt.st=tgt.storm=0;tgt.fn=35;tgt.ff=190;
+    if(curReg!=='Drachenfeste'){curReg='Drachenfeste';$('region').textContent=curReg;}return;}
+  if(DG.on){for(const k of['top','mid','bot','sc'])tgt[k].set('#0e0816');tgt.fog.set('#140a20');tgt.sp=tgt.st=tgt.storm=0;tgt.fn=30;tgt.ff=150;
     if(curReg!=='Schattengruft'){curReg='Schattengruft';$('region').textContent=curReg;}return;}
   const w=regionW(player.pos.x,player.pos.z);for(const k of['top','mid','bot','sc','fog'])tgt[k].setRGB(0,0,0);tgt.sp=tgt.st=tgt.fn=tgt.ff=tgt.storm=0;let best=0,bi=0;
   REG.forEach((r,i)=>{const v=w[i];if(v>best){best=v;bi=i;}for(const k of['top','mid','bot','sc','fog'])tgt[k].r+=r['c'+k].r*v,tgt[k].g+=r['c'+k].g*v,tgt[k].b+=r['c'+k].b*v;tgt.sp+=r.sp*v;tgt.st+=r.st*v;tgt.fn+=r.fn*v;tgt.ff+=r.ff*v;tgt.storm+=(r.storm||0)*v;});
@@ -1897,7 +1899,7 @@ function dayNight(dt){voteT-=dt;if(voteT<0){voteT=.25;voteTick();}const ph=((((D
   if(WORLD.cloudMat)WORLD.cloudMat.color.multiplyScalar(1-.5*night-.3*rain);if(rain>.6)cur.storm=Math.max(cur.storm,.6);
   if(!rainPts){const n=2200,pos=new Float32Array(n*3);for(let i=0;i<n;i++){pos[i*3]=R(-45,45);pos[i*3+1]=R(0,35);pos[i*3+2]=R(-45,45);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));
     rainPts=new THREE.Points(g,new THREE.PointsMaterial({color:0xb0d0ff,size:.3,transparent:true,opacity:0,depthWrite:false}));rainPts.frustumCulled=false;scene.add(rainPts);}
-  rainPts.visible=rain>.04&&state!=='title'&&!DG.on;if(rainPts.visible){rainPts.position.set(player.pos.x,player.pos.y-5,player.pos.z);rainPts.material.opacity=.7*rain;const a=rainPts.geometry.attributes.position;for(let i=0;i<a.count;i++){let y=a.array[i*3+1]-dt*38;if(y<0)y+=35;a.array[i*3+1]=y;}a.needsUpdate=true;}
+  rainPts.visible=rain>.04&&state!=='title'&&!DG.on&&!FE.on;if(rainPts.visible){rainPts.position.set(player.pos.x,player.pos.y-5,player.pos.z);rainPts.material.opacity=.7*rain;const a=rainPts.geometry.attributes.position;for(let i=0;i<a.count;i++){let y=a.array[i*3+1]-dt*38;if(y<0)y+=35;a.array[i*3+1]=y;}a.needsUpdate=true;}
   const hh=(6+ph*24)%24,hs=String(Math.floor(hh)).padStart(2,'0')+':'+String(Math.floor((hh%1)*60)).padStart(2,'0');$('clock').textContent=(night>.5?'Nacht ':'Tag ')+hs+(rain>.3?' · Regen':'');}
 
 /* Mehrspieler-Takt */
@@ -1933,6 +1935,7 @@ if(touchMode){let ek=0;$('bEmote').addEventListener('contextmenu',e=>{e.preventD
 
 /* ================= SPIEL-LOG / UPDATES ================= */
 const CHANGELOG=[
+ {v:'2.0',t:'Die Glutkönigin',d:'28.11.2026',items:['Kapitel 3 der Hauptquest: Seit sieben Jahren geht kein Mond mehr auf. Zorgrimms Schwester Ignara, die Glutkönigin, hält ihn in ihrem Hort gefangen. Sprich mit Meister Orlo, wenn du Kapitel 2 abgeschlossen hast.','Die Drachenfeste: Hinter Zorgrimms Thronhof führt ein riesiges Felsentor in den Berg. Drinnen kämpfst du dich durch die Torhalle, über die Brücke der Glutschlucht (Vorsicht vor Lavafontänen) bis in den Drachenhort. Ab Stufe 20.','Bossdrachin Ignara mit Feueratem, Biss, Schwanzhieb und Lavaregen aus der Luft. Beim ersten Sieg gibt es die Glutschuppen-Rüstung.','Nach Kapitel 3 steht nachts wieder der Mond am Himmel.','Felsentor, Hallen, Goldberge und die Drachin sind neue 3D-Modelle aus Blender.']},
  {v:'1.9.1',t:'Die lange Nacht ab Stufe 20',d:'28.11.2026',items:['Kapitel 2 lässt sich jetzt ab Stufe 20 abschließen: Vor der Schattengruft stellt sich dir Varkhuls Schatten in den Weg. Besiegst du ihn, ist Meister Orlo frei.','Die Schattengruft selbst und der echte Nachtfürst bleiben die Herausforderung ab Stufe 30.']},
  {v:'1.9',t:'Kampf 2.0',d:'28.11.2026',items:['Ausweichrolle mit V oder Rechtsklick (am Handy: Knopf „Rolle“). Sie kostet Ausdauer (grüner Balken unter dem Mana). Während der Rolle trifft dich nichts.','Perfektes Ausweichen: Wer im letzten Moment rollt, verlangsamt kurz die Zeit und macht 3 Sekunden lang 60 % mehr Schaden.','Treffer fühlen sich jetzt an: kurzer Trefferstopp, Rückstoß, Gegner blitzen weiß auf, Kamerawackeln bei Krits und schweren Treffern.','Rote Warnkreise am Boden zeigen, wo Golems, Skelette, Ritter und der Nachtfürst gleich zuschlagen.','Jede Klasse kämpft anders: Sonnenritter mit 3er-Schwertcombo und Sonnenwelle, Feuerhexer lädt Glutschüsse auf (F halten), Sternenmagier mit Kettenblitz, Mooshüter hält Gegner mit Ranken fest, Glücksstrolch trifft von hinten doppelt und kritisch nach dem Ausweichen.','Schneller aufsteigen: Stufe 30 braucht nur noch etwa halb so viele EP, und Gegner geben dreimal so viele EP wie bisher.','Wachere Gegner: Wer getroffen wird, alarmiert seine Nachbarn und verfolgt dich weiter. Kobolde tänzeln und springen dich an, Skelette und Ritter weichen Schüssen aus, Geister und der Nachtfürst zielen dorthin, wo du gleich sein wirst.']},
  {v:'1.8',t:'Die lange Nacht',d:'28.11.2026',items:['Kapitel 2 der Hauptquest: Nach dem Erwachen der Sonne suchst du Fennicks verschollenen Meister Orlo. Drei Schattensiegel mit eigenen Wächter-Bossen, Sir Morwens Erinnerung, die Schattengruft und ein Epilog mit Orlos Sternenhut.','Orlos Tagebuch: Acht violett leuchtende Seiten liegen in der Welt, eine pro Region. Gefundene Seiten kannst du im Questbuch nachlesen.','Neue Texturen für Häuser, Dächer, Pflaster, Mauern, Stein, Rinde, Eisen und Gold, in Blender als echtes Relief gerendert.','Die Bewohner von Butterbühl und alle benannten Figuren sind jetzt richtige 3D-Figuren statt Kegelmännchen.','Items droppen seltener, und hohe Seltenheiten sind deutlich seltener. Legendär kommt nur noch in etwa 1,5 % der Fälle.']},
@@ -3099,7 +3102,7 @@ addEventListener('keyup',e=>{if((e.code==='KeyF'||e.code==='KeyJ')&&CB.charge>=0
   else if(c==='druide'){if(e.type!=='boss')e.rootT=Math.max(e.rootT||0,.9);if(CB.hits%4===0&&e.hp>-999)vines(e);}};}
 /* ---------- Gegner: Rückstoß, Ranken, Ausweichen, Gruppen-Alarm ---------- */
 {const _ai=enemyAI;enemyAI=function(e,dt){const p=e.g.position;
-  if(e.kb){p.x+=e.kb.x*dt;p.z+=e.kb.z*dt;const f=Math.max(0,1-dt*9);e.kb.x*=f;e.kb.z*=f;if(Math.abs(e.kb.x)+Math.abs(e.kb.z)<.3)e.kb=null;if(p.x<1700||DG.on)constrain(p);}
+  if(e.kb){p.x+=e.kb.x*dt;p.z+=e.kb.z*dt;const f=Math.max(0,1-dt*9);e.kb.x*=f;e.kb.z*=f;if(Math.abs(e.kb.x)+Math.abs(e.kb.z)<.3)e.kb=null;if(p.x<1700||DG.on||FE.on)constrain(p);}
   if(e.aggroT>0)e.aggroT-=dt;if(e.dCd>0)e.dCd-=dt;
   if(e.rootT>0){e.rootT-=dt;const x=p.x,z=p.z;_ai(e,dt);p.x=x;p.z=z;
     if(!e.rootFx){e.rootFx=glow(0x5aff8a,2.4);e.rootFx.position.y=.3;e.g.add(e.rootFx);}return;}
@@ -3153,6 +3156,140 @@ function combatPost(dt){const B=hero.userData.body;
 CLS.ritter.pro.push('Nahkampf: 3er-Schwertcombo, der 3. Schlag schleudert eine Sonnenwelle');CLS.feuer.pro.push('F gedrückt halten: aufgeladener Feuerschuss mit Explosion');
 CLS.magier.pro.push('Jeder 3. Treffer springt als Kettenblitz weiter');CLS.druide.pro.push('Treffer halten Gegner mit Ranken fest, jeder 4. lässt Dornen sprießen');
 CLS.strolch.pro.push('Doppelter Schaden und Krit von hinten, Krit direkt nach dem Ausweichen');
+
+/* ===================== AKT 3: DIE GLUTKÖNIGIN — DIE DRACHENFESTE ===================== */
+/* Felsentor hinter Zorgrimms Thronhof. Drinnen (abseits der Karte bei x≈2600): Torhalle → Glutschlucht → Hort mit der Drachin Ignara. */
+{const _ff=freshFlags;freshFlags=function(){return Object.assign(_ff(),{c3:0,feK:0});};F=freshFlags();}
+const FE={on:false,x:2600,built:false,list:[],gates:[],stage:0,marks:[],eT:0},FEB={x0:2561,x1:2639,z0:-233,z1:-2};
+const N3={ig:'Ignara, die Glutkönigin',mond:'Der Mond'};
+const feR=(x0,x1,z0,z1)=>({x0:FE.x+x0,x1:FE.x+x1,z0,z1,fe:1});
+function feBlockers(){return[feR(-27,-25,-62,1),feR(25,27,-62,1),feR(-25,-4,-62,-60),feR(4,25,-62,-60),
+  feR(-27,-25,-155,-60),feR(25,27,-155,-60),feR(-4.6,-3.4,-142,-72),feR(3.4,4.6,-142,-72),feR(-25,-4.6,-142,-72),feR(4.6,25,-142,-72),
+  feR(-40,-4,-155,-153),feR(4,40,-155,-153),feR(-42,-40,-236,-153),feR(40,42,-236,-153),feR(-10,10,-229,-219)];}
+function feProps(){const X=FE.x,o=[];for(const z of[-10,-22,-34,-46])for(const s of[-1,1])o.push({x:X+s*13,z,r:1.7,fe:1});
+  for(const[x,z]of[[-26,-14],[26,-14],[-30,-40],[30,-40],[-26,-66],[26,-66]])o.push({x:X+x,z:z-154,r:2.3,fe:1});return o;}
+/* ---------- Felsentor in der Oberwelt ---------- */
+function buildFesteTor(){WORLD.glut=null;WORLD.moonS=null;const z=1430,y=H(0,1420);const g=new THREE.Group();g.position.set(0,(isFinite(y)?y:0)+2.4,z);g.rotation.y=PI;world.add(g);WORLD.feTor=g;
+  const fb=P(G.box,M('feFb',()=>lam({map:T.dark(4,4),color:0x8a7468})),g,0,20,-8,60,40,16);withMdl('f_tor',m=>{if(WORLD.feTor!==g)return;fb.visible=false;g.add(m.clone(true));});
+  for(const s of[-1,1]){const f=glow(0xff6020,7);f.position.set(s*13.5,11.5,6);g.add(f);flick.push(f);}
+  inter.push({x:0,z:1417,r:10,label:'Das Felsentor',fn:()=>enterFeste()});blockers.push({x0:-36,x1:36,z0:1423,z1:1438});if(F.c3===2)spawnGlut();}
+function spawnGlut(){if(WORLD.glut||F.c3!==2)return;const x=0,z=1398,y=H(x,z);const g=new THREE.Group();g.position.set(x,(isFinite(y)?y:0)+3.6,z);world.add(g);
+  P(G.oct,M('glutM',()=>lam({color:0xffa040,emissive:0xff4000})),g,0,0,0,.6,1,.6);g.add(glow(0xff6020,4));
+  P(G.cyl,new THREE.MeshBasicMaterial({color:0xff6020,transparent:true,opacity:.25,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}),g,0,40,0,.7,80,.7);pickups.push({g,kind:'glut'});WORLD.glut=g;}
+PICK.glut=()=>{WORLD.glut=null;if(F.c3!==2)return;F.c3=3;flash('#ff8030',.5);dialog([[N.nar,'Die Drachenglut pulsiert in Fennicks Hand wie ein zweites Herz. Sie ist warm, aber sie brennt nicht.'],[N.fen,'Jetzt zum Felsentor hinter dem Thron. Hoffentlich klopft man da nicht einfach.']],()=>toast('Hauptquest aktualisiert: Die Glutkönigin'));};
+/* ---------- Innenräume ---------- */
+function feBuild(){if(FE.built)return;FE.built=true;const grp=new THREE.Group(),X=FE.x;FE.grp=grp;scene.add(grp);
+  const put=(n,x,z,ry=0)=>{const h=new THREE.Group();h.position.set(x,0,z);h.rotation.y=ry;grp.add(h);withMdl(n,m=>h.add(m.clone(true)));return h;};
+  put('f_halle',X,0);put('f_schlucht',X,-62);put('f_hort',X,-154);FE.portal=put('d_portal',X,-1.2,PI);
+  FE.gates=[{z:-61},{z:-154}].map(o=>Object.assign(o,{g:put('d_tor',X,o.z),y:0}));
+  for(const[x,z,c,i]of[[X-14,-15,0xff7a30,1.6],[X+14,-45,0xff7a30,1.6],[X,-100,0xff5010,2.4],[X-15,-185,0xffa040,1.8],[X+15,-215,0xffa040,1.8],[X,-220,0x9ad0ff,1.4]]){const l=new THREE.PointLight(c,i,60,2);l.position.set(x,8,z);grp.add(l);}
+  if(!THREE.GLTFLoader||location.protocol==='file:'){const wm=lam({color:0x4a3a38}),fm=lam({color:0x3a2e2c});P(G.box,fm,grp,X,-.25,-117,80,.5,234);for(const b of feBlockers())P(G.box,wm,grp,(b.x0+b.x1)/2,5,(b.z0+b.z1)/2,b.x1-b.x0,10,b.z1-b.z0);}
+  grp.visible=false;}
+function enterFeste(){
+  if(F.c3<3){dialog(F.c3>=1?[[N.fen,'Das Tor ist mit Drachenglut versiegelt. Die Wächterstatuen starren mich an, als wüssten sie, dass ich keinen Schlüssel habe.']]:[[N.fen,'Ein Tor im Fels, so hoch wie ein Kirchturm. Es ist warm, als würde dahinter etwas atmen.']]);return;}
+  if(player.lv<20){dialog([[N.fen,'Die Glut in meiner Hand flackert und wird kalt. Dahinter wartet etwas, das mich in einem Happs verschluckt. Erst Stufe 20.']]);toast(`Die Drachenfeste: ab Stufe 20 (du bist Stufe ${player.lv})`);return;}
+  feBuild();if(riding)toggleBroom();FE.on=true;FE.grp.visible=true;FE.stage=0;FE.list=[];FE.eT=0;
+  blockers.push(...feBlockers());FE.props=feProps();props.push(...FE.props);
+  for(const gt of FE.gates){gt.open=false;gt.y=0;gt.g.position.y=0;gt.blk={x0:FE.x-4,x1:FE.x+4,z0:gt.z-1,z1:gt.z+1,fe:1};blockers.push(gt.blk);}
+  FE.exitI={x:FE.x,z:-4,r:4.5,label:'Die Drachenfeste verlassen',fn:()=>leaveFeste(true)};inter.push(FE.exitI);
+  player.pos.set(FE.x,0,-17);player.vy=0;player.rot=PI;camYaw=0;player.check.copy(player.pos);
+  feSpawn(0);flash('#200800',.8);beep(90,.9,'sawtooth',.07);toast('Die Drachenfeste');save();
+  if(!F.feK)dialog([[N.nar,'Hinter dem Felsentor öffnet sich eine Halle, so groß, dass das Echo erst nach drei Herzschlägen zurückkommt.'],['Ritter der Glut','Ein Eindringling! Für die Königin!']]);}
+function feE(e,o){Object.assign(e,o);e.max=e.hp;e.noRespawn=1;e.aggro=1;e.aggroT=1e9;e.lootTier=8;return e;}
+function feSpawn(i){const X=FE.x,L=[];
+  if(i===0){for(let k=0;k<4;k++)L.push(feE(knightE(X-12+k*8,-30-(k%2)*6,false),{hp:260,dmg:2,xp:110,gold:40}));
+    for(const s of[-1,1])L.push(feE(knightE(X+s*6,-48,true),{hp:430,dmg:3,xp:200,gold:80,elite:1}));
+    for(let k=0;k<4;k++)L.push(feE(goblinE(X-15+k*10,-18,'glut'),{hp:140,dmg:2,xp:60,gold:20}));}
+  else if(i===1){for(let k=0;k<4;k++)L.push(feE(skelE(X+(k%2?2:-2),-84-k*14,{}),{hp:300,dmg:2,xp:120,gold:40}));
+    for(let k=0;k<4;k++)L.push(feE(batE(X+R(-8,8),6,-90-k*12),{hp:90,dmg:2,xp:50,gold:15}));
+    for(const s of[-1,1])L.push(feE(golemE(X+s*12,-147,{}),{hp:1300,dmg:2,xp:420,gold:140}));}
+  else{const b=dragonE(X,-205);b.onDie=()=>feVictory(b);L.push(b);}
+  for(const e of L)e.room=i;FE.list.push(...L);}
+function feOpen(i){const gt=FE.gates[i];if(!gt||gt.open)return;gt.open=true;blockers=blockers.filter(b=>b!==gt.blk);beep(180,.7,'square',.05);}
+function feMark(x,z,r,dur,fn){const g=new THREE.Group(),d=new THREE.Mesh(TEL_G.disc,TEL_M),rg=new THREE.Mesh(TEL_G.ring,TEL_R);d.rotation.x=rg.rotation.x=-PI/2;g.add(d,rg);g.scale.setScalar(r);g.position.set(x,.15,z);world.add(g);FE.marks.push({g,d,t:0,dur,fn,x,z,r});}
+function feTick(dt){if(!FE.on)return;if(player.pos.x<2300){leaveFeste(false);return;}
+  for(const gt of FE.gates){const ty=gt.open?8.6:0;gt.y+=(ty-gt.y)*Math.min(1,dt*1.5);gt.g.position.y=gt.y;}
+  for(let i=FE.marks.length-1;i>=0;i--){const m=FE.marks[i];m.t+=dt;m.d.scale.setScalar(Math.min(1,m.t/m.dur));if(m.t>=m.dur){world.remove(m.g);FE.marks.splice(i,1);
+    for(let k=0;k<3;k++)burst(new THREE.Vector3(m.x+R(-1,1)*m.r*.5,R(.5,2),m.z+R(-1,1)*m.r*.5),k%2?0xff6020:0xffc040);beep(80,.3,'sawtooth',.05);
+    if(Math.hypot(player.pos.x-m.x,player.pos.z-m.z)<m.r+.4&&player.pos.y<3)hurt(2);if(m.fn)m.fn(m);}}
+  const alive=i=>FE.list.some(e=>e.room===i&&e.hp>0);
+  if(FE.stage===0&&!alive(0)){FE.stage=1;feOpen(0);toast('Das Gitter zur Glutschlucht hebt sich …');}
+  if(FE.stage===1&&player.pos.z<-66){FE.stage=2;feSpawn(1);toast('Die Glutschlucht: Weich den Lavafontänen aus!');}
+  if(FE.stage>=2&&FE.stage<4&&player.pos.z<-68&&player.pos.z>-150){FE.eT-=dt;if(FE.eT<=0){FE.eT=R(1.6,2.6);const z=player.pos.z+R(-6,6)+CB.pv.z*.8,x=FE.x+R(-3,3);feMark(x,Math.min(-72,Math.max(-142,z)),2.6,1.3);}}
+  if(FE.stage===2&&!alive(1)){FE.stage=3;feOpen(1);toast('Der Weg zum Hort ist frei. Es riecht nach Gold und Rauch.');}
+  if(FE.stage===3&&player.pos.z<-162){FE.stage=4;feSpawn(2);
+    dialog([[N3.ig,'Noch ein Dieb. Sie kommen immer, wegen des Goldes. Und keiner geht je wieder.'],[N3.ig,'Mein Bruder Zorgrimm war ein Hitzkopf. Ich bin das Feuer selbst.'],[N3.mond,'… Hilfe … bitte … ich bin so müde vom Glänzen …']]);}
+  for(const e of FE.list)if(e.hp>0&&e.g.position.y<-4){e.hp=0;world.remove(e.g);burst(e.g.position.clone(),0xff6020);}}
+function leaveFeste(byPortal){if(!FE.on)return;FE.on=false;if(FE.grp)FE.grp.visible=false;
+  for(const e of FE.list)if(e.hp>0){e.hp=0;world.remove(e.g);}FE.list=[];for(const m of FE.marks)world.remove(m.g);FE.marks=[];
+  blockers=blockers.filter(b=>!b.fe);props=props.filter(o=>!o.fe);inter=inter.filter(i=>i!==FE.exitI&&i!==FE.exit2);if(FE.p2){FE.grp.remove(FE.p2);FE.p2=null;}
+  if(activeBoss&&activeBoss.kind==='dragon'){activeBoss=null;$('boss').hidden=true;}shots.forEach(s=>world.remove(s.m));shots=[];
+  if(byPortal){const y=H(0,1420);player.pos.set(0,(isFinite(y)?y:0)+.5,1420);player.vy=0;player.rot=0;camYaw=PI;player.check.copy(player.pos);flash('#000',.6);toast('Zurück im Thronhof');}save();}
+/* ---------- Die Drachin ---------- */
+function dragonE(x,z){return mdlEnemy('drache',x,z,{kind:'dragon',name:N3.ig,hp:7000,r:5,hitY:6,dmg:3,xp:5000,gold:1500,ai:dragonAI,fbH:12,fbW:7,elite:1,lootTier:9,st:'walk',cd:3,flyT:22});}
+function dragonAI(e,dt,d){const p=e.g.position,pp=player.pos;if(activeBoss!==e){activeBoss=e;$('boss').hidden=false;$('bossName').textContent=e.name;updHUD();}
+  if(!e.N&&e.g.getObjectByName('jaw')){e.N={};for(const n of['neck','head','jaw','wingL','wingR','tail','legL','legR','legBL','legBR'])e.N[n]=e.g.getObjectByName(n);}
+  const N=e.N||{},ph=e.hp>e.max*.6?1:e.hp>e.max*.25?2:3,fw=new THREE.Vector3(Math.sin(e.g.rotation.y),0,Math.cos(e.g.rotation.y));e.t+=dt;e.cd-=dt;e.flyT-=dt;
+  if(ph!==e.phase){if(e.phase&&ph===2){e.st='rise';e.t=0;toast('Ignara erhebt sich in die Luft!');}if(ph===3){toast('Ignara rast vor Zorn!');flash('#ff3020',.3);beep(60,.8,'sawtooth',.08);}e.phase=ph;}
+  const flap=(s,a)=>{if(N.wingL){N.wingL.rotation.z=Math.sin(time*s)*a;N.wingR.rotation.z=-Math.sin(time*s)*a;}};if(N.tail)N.tail.rotation.y=Math.sin(time*1.7)*.35;
+  const jaw=v=>{if(N.jaw)N.jaw.rotation.x+=(v-N.jaw.rotation.x)*Math.min(1,dt*10);};
+  const legs=on=>{const w=on?Math.sin(time*5)*.35:0;if(N.legL){N.legL.rotation.x=w;N.legR.rotation.x=-w;N.legBL.rotation.x=-w;N.legBR.rotation.x=w;}};
+  const mouth=()=>p.clone().addScaledVector(fw,13).setY(p.y+10.5);
+  if(e.st==='walk'){flap(2,.1);jaw(0);faceTo(e,pp.x,pp.z);const dd=stepTo(e,pp.x,pp.z,ph===3?5.2:3.4,dt,10);legs(dd>10.5);p.y=0;
+    if(e.cd<=0){const dx=pp.x-p.x,dz=pp.z-p.z,beh=(dx*fw.x+dz*fw.z)/Math.max(d,1e-3)<-.2;
+      e.atk=d<11&&beh?'tail':d<13?'bite':d<30?'breath':'bite';if(ph>=2&&e.flyT<=0){e.st='rise';e.t=0;return;}
+      e.st='wind';e.t=0;e.cd=ph===3?1.5:2.4;beep(e.atk==='breath'?110:150,.3,'sawtooth',.06);}}
+  else if(e.st==='wind'){const I=telInfo(e);if(e.atk!=='tail')faceTo(e,pp.x,pp.z);legs(false);jaw(e.atk==='tail'?0:.5);if(N.neck)N.neck.rotation.x=-.25*(e.t/I.dur);flap(3,.18);
+    if(e.t>=I.dur){if(N.neck)N.neck.rotation.x=0;const c=p.clone().addScaledVector(fw,I.f);
+      if(e.atk==='breath'){e.st='breathe';e.t=0;}
+      else{e.st='walk';e.t=0;if(Math.hypot(pp.x-c.x,pp.z-c.z)<I.r&&pp.y<4)hurt(e.atk==='bite'?e.dmg+1:e.dmg);CB.shake=Math.max(CB.shake,.3);beep(70,.3,'square',.07);if(e.atk==='tail'&&N.tail)N.tail.rotation.y=2.4;}}}
+  else if(e.st==='breathe'){jaw(.7);e.bt=(e.bt||0)-dt;if(e.bt<=0){e.bt=.07;const m=mouth(),dir=fw.clone().applyAxisAngle(_UPV,R(-.35,.35));dir.y=-.33;enemyShot(m,dir.normalize().multiplyScalar(24),0xff7020,1.3,0,2);}
+    if(e.t>1.4){e.st='walk';e.t=0;}}
+  else if(e.st==='rise'){flap(7,.6);legs(false);p.y=Math.min(14,p.y+dt*9);if(p.y>=14){e.st='air';e.t=0;e.rt=0;}}
+  else if(e.st==='air'){flap(6,.55);jaw(.4);const cx=FE.x,cz=-195,a=time*.5;p.x+=(cx+Math.sin(a)*18-p.x)*Math.min(1,dt*1.2);p.z+=(cz+Math.cos(a)*18-p.z)*Math.min(1,dt*1.2);faceTo(e,pp.x,pp.z);p.y=14+Math.sin(time*2)*.8;
+    e.rt-=dt;if(e.rt<=0){e.rt=ph===3?1.1:1.6;for(let k=0;k<(ph===3?4:3);k++){const x=pp.x+CB.pv.x*.8+R(-5,5),z=pp.z+CB.pv.z*.8+R(-5,5);feMark(x,z,3.2,1.2);
+      const m=mouth();enemyShot(m,new THREE.Vector3(x,0,z).sub(m).multiplyScalar(1/1.2),0xff5010,1.4,.01,0);}}
+    if(e.t>8){e.st='land';e.t=0;e.lx=pp.x;e.lz=pp.z;e.atk='slam';}}
+  else if(e.st==='land'){flap(5,.4);p.x+=(e.lx-p.x)*Math.min(1,dt*2);p.z+=(e.lz-p.z)*Math.min(1,dt*2);p.y=Math.max(0,p.y-dt*12);
+    if(!e.lm){e.lm=1;feMark(e.lx,e.lz,9,1.2);}if(p.y<=0&&e.t>1.2){e.lm=0;e.st='walk';e.t=0;e.flyT=ph===3?16:24;e.cd=2;CB.shake=Math.max(CB.shake,.5);}}}
+{const _ti=telInfo;telInfo=function(e){if(e.kind==='dragon')return e.atk==='breath'?{r:10,f:15,dur:1.1}:e.atk==='tail'?{r:11,f:-3,dur:.9}:{r:6,f:10,dur:.8};return _ti(e);};}
+function feVictory(b){const c=b.g.position;F.feK=(F.feK|0)+1;for(let i=0;i<3;i++)dropItem(makeItem(9,Math.max(2,rollRar(.4))),c.x,c.z);
+  if(F.feK===1)dropItem({id:RPG.uid++,slot:'robe',r:4,name:'Glutschuppen-Rüstung',st:{hp:6,def:18,dmg:4,regen:30},lvl:9,val:4000},c.x,c.z);
+  for(const e of FE.list)if(e.hp>0&&e!==b){e.hp=0;world.remove(e.g);}
+  FE.exit2={x:FE.x,z:-195,r:4,label:'Zurück in den Thronhof',fn:()=>leaveFeste(true)};inter.push(FE.exit2);
+  const pg=new THREE.Group();pg.position.set(FE.x,0,-195);FE.grp.add(pg);FE.p2=pg;withMdl('d_portal',m=>pg.add(m.clone(true)));
+  flash('#e8f4ff',.8);beep(523,.6,'sine',.08);setTimeout(()=>beep(784,.9,'sine',.08),250);toast('Ignara ist besiegt!');
+  const first=F.c3===3;dialog(first?[[N3.ig,'Mein … Gold …'],[N.nar,'Der eiserne Käfig über dem Thron zerspringt. Der Mond schwebt heraus, blinzelt und gähnt so groß, dass die Halle silbern wird.'],
+    [N3.mond,'Danke, kleiner Zauberer. Sieben Jahre in einem Goldhaufen. Ich habe jede Münze gezählt. Es sind einundachtzigtausendzweihundertvier.'],[N3.mond,'Bring mich zu Sol. Sie wird schimpfen, weil ich so lange weg war. Sie schimpft immer.']]
+    :[[N.nar,'Ignara zerfällt zu Glut. In den Goldbergen knistert es schon wieder. Drachen kommen immer zurück.']],()=>{if(first){F.c3=4;toast('Hauptquest aktualisiert: Die Glutkönigin');}save();});}
+/* ---------- Mond am Himmel nach Akt 3 ---------- */
+function moonTick(){if(!WORLD.moonS&&F.c3>=4){const g=new THREE.Group();P(G.sph,new THREE.MeshBasicMaterial({color:0xe8f0ff,fog:false}),g,0,0,0,14);g.add(glow(0xa8d0ff,70));world.add(g);WORLD.moonS=g;}
+  const m=WORLD.moonS;if(!m)return;m.visible=!DG.on&&!FE.on&&isNightNow();if(m.visible)m.position.set(camera.position.x-160,camera.position.y+120,camera.position.z+300);}
+/* ---------- Geschichte ---------- */
+{const _to=talkOrlo;talkOrlo=function(){if(F.c2>=6&&F.c3===0){dialog([[N2.or,'Fennick. Ist dir aufgefallen, dass nachts Sterne leuchten, aber kein Mond?'],[N2.or,'Seit sieben Jahren geht er nicht mehr auf. Ich dachte immer, Varkhul hätte ihn gestohlen. Aber Varkhul frisst Träume, keine Himmelskörper.'],
+    [N2.or,'Zorgrimm hatte eine ältere Schwester: Ignara, die Glutkönigin. Drachen horten alles, was glänzt. Und nichts glänzt schöner als der Mond.'],
+    [N2.or,'Ihr Hort liegt tief in der Drachenfeste. Der Eingang ist das Felsentor hinter Zorgrimms Thronhof. Es ist versiegelt. Sir Morwen hat einmal erzählt, wie Zorgrimm es öffnete.']],
+    ()=>{F.c3=1;toast('Neue Hauptquest: Die Glutkönigin');save();});return;}
+  if(F.c3>=1&&F.c3<5){dialog(say(N2.or,['Drachen sind eitel. Wenn sie Feuer holen, reißen sie das Maul auf und schauen nach oben. Dann: zur Seite!','Ignara fliegt, wenn sie wütend wird. Achte auf die roten Kreise am Boden.','Bring den Mond heim. Sol ist unausstehlich, wenn sie allein am Himmel ist.'][Math.floor(Math.random()*3)]));return;}
+  _to();};}
+{const _tm=talkMorwen;talkMorwen=function(){if(F.c3===1){dialog([[N.mo,'Das Felsentor. Zorgrimm hat es mit seinem Feuer geöffnet. Er hielt die Hand an das Siegel, und die Glut in ihm hat es aufgeschmolzen.'],
+    [N.mo,'Sein Herzfeuer ist nicht ganz erloschen. Auf dem Podest im Thronhof, wo er fiel, glimmt noch ein Rest Drachenglut. Nimm sie. Damit öffnet sich das Tor.'],
+    [N.mo,'Ich komme nicht mit hinein. Sieben Jahre Käfig waren genug Burg für ein ganzes Leben.']],()=>{F.c3=2;spawnGlut();toast('Hauptquest aktualisiert: Die Glutkönigin');save();});return;}
+  if(F.c3===2||F.c3===3){dialog(say(N.mo,F.c3===2?'Die Glut liegt im Thronhof, vor dem Podest. Du kannst sie nicht verfehlen. Sie leuchtet wie ein Leuchtturm.':'Die Feste ist voller Ritter der Glut. Sie holen weit aus. Weich zur Seite, dann schlag zu.'));return;}
+  _tm();};}
+{const _ts=talkSol;talkSol=function(){if(F.c3===4){dialog([[N.sol,'Da bist du ja! Wo warst du sieben Jahre lang? Weißt du, wie langweilig es ist, allein über den Himmel zu laufen?'],
+    [N3.mond,'In einem Goldhaufen. Es war schrecklich. Und glänzend.'],[N.sol,'Fennick, du hast mir meine Träume zurückgebracht, deinen Meister befreit und jetzt auch noch meinen kleinen Bruder.'],[N3.mond,'Kleine Schwester.'],[N.sol,'Kleinen Mond. Hier, nimm das. Ein Stück von uns beiden.']],
+    ()=>{F.c3=5;addItem({id:RPG.uid++,slot:'amu',r:4,name:'Sonne-und-Mond-Amulett',st:{hp:5,mp:15,krit:12,regen:60,dmg:3},lvl:9,val:5000});grant(1500,800,'Kapitel 3 abgeschlossen: Die Glutkönigin');
+      setTimeout(()=>{const E=$('end');E.querySelector('h1').textContent='Der Mond geht wieder auf';E.querySelector('p').textContent='Sol läuft bei Tag über den Himmel, der Mond bei Nacht, und manchmal, in der Dämmerung, treffen sie sich und streiten. Die Drachenfeste steht noch, und in ihren Goldbergen knistert es. Komm zurück, wann immer du willst: Ignara wartet. Und die Schattengruft auch.';state='menu';E.hidden=false;},2500);});return;}
+  _ts();};}
+function c3Obj(){switch(F.c3){case 1:return'Frag Sir Morwen in Aschenmark, wie man das Felsentor hinter Zorgrimms Thronhof öffnet.';case 2:return'Hol die Drachenglut vom Podest im Thronhof.';
+  case 3:return player.lv<20?`Werde stark genug für die Drachenfeste (Stufe ${player.lv}/20).`:'Betritt die Drachenfeste durch das Felsentor, kämpf dich zum Hort durch und besiege Ignara.';case 4:return'Bring den Mond zu Sol Glutbart nach Butterbühl.';}return'Der Mond geht wieder auf.';}
+{const _ql=questList;questList=function(){const q=_ql();if(F.c3)q.splice(1,0,{t:'Die Glutkönigin',tag:'Hauptquest · Kapitel 3',done:F.c3>=5,d:c3Obj()});return q;};}
+{const _mf=markFor;markFor=function(id){if(id==='orlo'&&F.c2>=6&&F.c3===0)return'!';if(id==='morwen'&&F.c3===1)return'!';if(id==='sol'&&F.c3===4)return'?';return _mf(id);};}
+function c3Targets(){const NP=id=>npcs[id]?[npcs[id].g.position.x,npcs[id].g.position.z]:null;switch(F.c3){case 0:return F.c2>=6?[NP('orlo')]:[];case 1:return[NP('morwen')];case 2:return[[0,1398]];case 3:return[[0,1417]];case 4:return[NP('sol')];}return[];}
+{const _qt=questTargets;questTargets=function(){const tq=trackedQ();if(tq&&tq.t==='Die Glutkönigin')return c3Targets().filter(Boolean);const t=_qt();if(!tq)t.push(...c3Targets().filter(Boolean));return t;};}
+ANIM.feste=dt=>{moonTick();if(state==='play')feTick(dt);};
+MAP_POI.push(['Drachenfeste (Felsentor)',0,1440,'danger']);
 
 L=WORLD;buildAll();player.pos.set(0,0,16);state='title';
 loop();
